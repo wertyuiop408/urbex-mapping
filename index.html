@@ -28,19 +28,19 @@
             
 
 
-            map.addSource('national-park', {
+            map.addSource('points_data', {
                 "type":"geojson",
                 "data": data_url
             });
             map.addLayer({
-                'id': 'park-volcanoes',
+                'id': 'points',
                 'type': 'circle',
-                'source': 'national-park',
+                'source': 'points_data',
                 'paint': {
-                'circle-color': '#4264fb',
-                'circle-radius': 8,
-                'circle-stroke-width': 2,
-                'circle-stroke-color': '#ffffff'
+                    'circle-color': '#4264fb',
+                    'circle-radius': 8,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#ffffff'
                 },
                 'filter': ['==', '$type', 'Point']
             });
