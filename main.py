@@ -15,7 +15,8 @@ def main() -> None:
     cur = conn.cursor()
     createTables()
     #getThread('https://www.28dayslater.co.uk/threads/porth-wen-brickworks-anglesey-north-wales-january-2022.131644/')
-    get_forum_section("https://www.28dayslater.co.uk/forum/industrial-sites.6/?order=post_date&direction=desc")
+    #get_forum_section("https://www.28dayslater.co.uk/forum/industrial-sites.6/?order=post_date&direction=desc")
+    get_2dl()
 
     #close db
     conn.commit()
@@ -74,34 +75,35 @@ def createTables() -> None:
 
 
 def get_2dl() -> None:
-    """
-        https://www.28dayslater.co.uk/forum/noteworthy-reports.115/
-        https://www.28dayslater.co.uk/forum/asylums-and-hospitals.4/
-        https://www.28dayslater.co.uk/forum/high-stuff.35/
-        https://www.28dayslater.co.uk/forum/industrial-sites.6/
-        https://www.28dayslater.co.uk/forum/leisure-sites.7/
-        https://www.28dayslater.co.uk/forum/residential-sites.92/
-        https://www.28dayslater.co.uk/forum/military-sites.5/
-        https://www.28dayslater.co.uk/forum/mines-and-quarries.95/
-        https://www.28dayslater.co.uk/forum/roc-posts.50/
-        https://www.28dayslater.co.uk/forum/restored-roc-posts.82/
-        https://www.28dayslater.co.uk/forum/theatres-and-cinemas.78/
-        https://www.28dayslater.co.uk/forum/uk-draining-forum.94/
-        https://www.28dayslater.co.uk/forum/underground-sites.29/
-        https://www.28dayslater.co.uk/forum/european-and-international-sites.46/
-        https://www.28dayslater.co.uk/forum/other-sites.8/
-        https://www.28dayslater.co.uk/forum/leads-rumours-and-news.57/
-        https://www.28dayslater.co.uk/forum/photo-threads.158/
+    base_url = "https://www.28dayslater.co.uk/forum/"
+    suffix_url = "?order=post_date&direction=desc"
 
-        https://www.28dayslater.co.uk/forum/diehardlove.122/
-        https://www.28dayslater.co.uk/forum/downfallen.121/
-        https://www.28dayslater.co.uk/forum/solomon.123/
+    url_list = [
+        "noteworthy-reports.115/",
+        "asylums-and-hospitals.4/",
+        "high-stuff.35/",
+        "industrial-sites.6/",
+        "leisure-sites.7/",
+        "residential-sites.92/",
+        "military-sites.5/",
+        "mines-and-quarries.95/",
+        "roc-posts.50/",
+        "restored-roc-posts.82/",
+        "theatres-and-cinemas.78/",
+        "uk-draining-forum.94/",
+        "underground-sites.29/",
+        "european-and-international-sites.46/",
+        "other-sites.8/",
+        "leads-rumours-and-news.57/",
+        "photo-threads.158/",
+        "diehardlove.122/",
+        "downfallen.121/",
+        "solomon.123/"
+    ]
 
-    """
-
-    get_forum_section("https://www.28dayslater.co.uk/forum/industrial-sites.6/?order=post_date&direction=desc")
-
-
+    for i in url_list:
+        section_url = f"{base_url}{i}{suffix_url}"
+        get_forum_section(section_url)
     return
 
 
@@ -110,6 +112,7 @@ def get_forum_section(url: str, page: int = 1) -> None:
     starting_page = url_parse._replace(path=f"{url_parse.path}page-{page}").geturl()
     max_pages = get_forum_section_page(starting_page).max_pages
     #xx = xurl.path.strip('/').split('/')
+    print(f"crawling {url_parse.path} -- {max_pages} pages")
 
 
     for i in range(page+1, max_pages + 1):
