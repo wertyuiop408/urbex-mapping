@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 from urllib.parse import urlparse, urljoin
+from collections import namedtuple
 import string
 import requests
 import sqlite3
@@ -74,18 +75,25 @@ def createTables() -> None:
 def get_forum_section(url: str, page: int = 1) -> None:
     url_parse = urlparse(url)
     starting_page = url_parse._replace(path=f"{url_parse.path}page-{page}").geturl()
-    max_pages = get_forum_section_page(starting_page)
+    max_pages = get_forum_section_page(starting_page).max_pages
     #xx = xurl.path.strip('/').split('/')
 
 
     for i in range(page+1, max_pages + 1):
         print(f"crawling page {i} of {max_pages}")
         xx = url_parse._replace(path=f"{url_parse.path}page-{i}").geturl()
-        get_forum_section_page(xx)    
+        get = get_forum_section_page(xx)
+        print(get)
+
+        if get.error_cnt == get.thread_cnt:
+            print(f"breaking on page {i} (possibly no newer threads)")
+            break
     return
 
 
 def get_forum_section_page(url: str) -> int:
+    nt = namedtuple('gfsp', ['max_pages', 'error_cnt', 'thread_cnt'])
+
     #https://www.28dayslater.co.uk/forum/industrial-sites.6/page-2?order=post_date&direction=desc
     page = requests.get(url)
     soup = BeautifulSoup(page.content, "html.parser")
@@ -93,21 +101,20 @@ def get_forum_section_page(url: str) -> int:
     crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
     max_pages = soup.select("ul.pageNav-main > li.pageNav-page:nth-last-of-type(1) > a")[0].text
+    err_count = 0
 
     for x in list_of_threads:
         title = str(x.select_one(".structItem-title").get_text().strip())
         thread_url = x.select("a")[0].get("href")
         thread_url_abs = urljoin(url, thread_url)
 
-        err_count = 0
         try:
             cur.execute("INSERT INTO refs VALUES (NULL, ?, ?, NULL, ?, NULL, NULL)", (thread_url_abs, title, crawl_date))
         except Exception:
             #find out the real exception type later
-            err_count++
+            err_count = err_count+1
 
-
-    return int(max_pages)
+    return nt(int(max_pages), err_count, len(list_of_threads))
 
 
 def getThread(url:str) -> None:
