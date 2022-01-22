@@ -30,8 +30,8 @@ def createTables() -> None:
         date_inserted TEXT,
         last_updated TEXT,
         name TEXT,
-        long INTEGER,
-        lat INTEGER,
+        long REAL,
+        lat REAL,
         notes TEXT,
         status INTEGER
         )""")
@@ -39,8 +39,8 @@ def createTables() -> None:
 
     cur.execute("""CREATE TABLE IF NOT EXISTS "parking" (
         place_id INTEGER,
-        lat INTEGER,
-        long INTEGER,
+        lat REAL,
+        long REAL,
         paid INTEGER,
         FOREIGN KEY ("place_id") REFERENCES places("row_id")
         )""")
@@ -99,7 +99,12 @@ def get_forum_section_page(url: str) -> int:
         thread_url = x.select("a")[0].get("href")
         thread_url_abs = urljoin(url, thread_url)
 
-        cur.execute("INSERT OR IGNORE INTO refs VALUES (NULL, ?, ?, NULL, ?, NULL, NULL)", (thread_url_abs, title, crawl_date))
+        err_count = 0
+        try:
+            cur.execute("INSERT INTO refs VALUES (NULL, ?, ?, NULL, ?, NULL, NULL)", (thread_url_abs, title, crawl_date))
+        except Exception:
+            #find out the real exception type later
+            err_count++
 
 
     return int(max_pages)
