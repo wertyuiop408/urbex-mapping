@@ -5,24 +5,17 @@ from urllib.parse import urlparse, urljoin
 from collections import namedtuple
 import string
 import requests
-import sqlite3
+from db import db
 from bs4 import BeautifulSoup
-from db import create_tables
+
 
 def main() -> None:
-    global cur
-    conn = sqlite3.connect('urbex.db')
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-    create_tables(cur)
+    db.create_tables()
     
     #getThread('https://www.28dayslater.co.uk/threads/porth-wen-brickworks-anglesey-north-wales-january-2022.131644/')
     #get_forum_section("https://www.28dayslater.co.uk/forum/industrial-sites.6/?order=post_date&direction=desc")
     get_2dl()
 
-    #close db
-    conn.commit()
-    conn.close()
     return
 
 
@@ -89,7 +82,7 @@ def get_forum_section_page(url: str) -> int:
 
     max_pages = soup.select("ul.pageNav-main > li.pageNav-page:nth-last-of-type(1) > a")[0].text
     err_count = 0
-    cur.execute("BEGIN")
+    db.get_cur().execute("BEGIN")
 
     for x in list_of_threads:
         title = str(x.select_one(".structItem-title").get_text().strip())
@@ -98,11 +91,11 @@ def get_forum_section_page(url: str) -> int:
         thread_date = x.select_one("time").get("datetime")
                 
         try:
-            cur.execute("INSERT INTO refs VALUES (NULL, ?, ?, NULL, ?, NULL, ?, NULL)", (thread_url_abs, title, crawl_date, thread_date))
+            db.get_cur().execute("INSERT INTO refs VALUES (NULL, ?, ?, NULL, ?, NULL, ?, NULL)", (thread_url_abs, title, crawl_date, thread_date))
         except Exception:
             #find out the real exception type later
             err_count = err_count+1
-    cur.execute("COMMIT")
+    db.get_cur().execute("COMMIT")
 
     return nt(int(max_pages), err_count, len(list_of_threads), page.status_code)
 
