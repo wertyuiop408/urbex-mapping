@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from db import db
 
 
-class xxviii_dayslater():
+class xxviii_dayslater:
 
     base_url = "https://www.28dayslater.co.uk/forum/"
     suffix_url = "?order=post_date&direction=desc"
@@ -36,15 +36,76 @@ class xxviii_dayslater():
     ]
 
     def __init__(self):
+        self.force = False
         return
+        
 
     def crawl(self):
-        for i in self.sections:
-            section_url = f"{self.base_url}{i}{self.suffix_url}"
-            self.get_forum_section(section_url)
+        for section in self.sections:
+            self.crawl_section(section)
         return
 
-    def get_thread(self):
+
+    def crawl_section(self, section, page = 1) -> None:
+        print(f"{section} starting crawl")
+        sql_stmnt = "INSERT OR IGNORE INTO refs(url, title, date_inserted, date_post) VALUES (?, ? ,? ,?)"
+        total_entries = 0
+        inserted_entries = 0
+        max_pages = 0
+
+        while True:
+            abs_url = f"{self.base_url}{section}page-{page}{self.suffix_url}"
+            entry = self.get_section_page(abs_url)
+
+            if entry["status_code"] != 200:
+                print(f"[{entry['status_code']}]{section} Page:{page}")
+                break
+
+            max_pages = int(entry["max_pages"])
+            db.get_cur().execute("BEGIN")
+            inserted_count = db.get_cur().executemany(sql_stmnt, entry["data"]).rowcount
+            db.get_cur().execute("COMMIT")
+            inserted_entries += inserted_count
+            total_entries += len(entry["data"])
+            if inserted_count == 0 and self.force == False:
+                print(f"{section} 0 entries inserted")
+                return
+
+            if inserted_count < len(entry["data"]):
+                print(f"{section}, page {page} missing entries. {inserted_count}/{len(entry['data'])} inserted")
+
+            page += 1
+            if page > max_pages:
+                break
+
+        print(f"{section} Inserted {inserted_entries}/{total_entries} rows from {page}/{max_pages} pages")
+        return
+
+
+    def get_section_page(self, direct_url):
+        page = requests.get(direct_url)
+
+        if page.status_code != 200:
+            return {'status_code':page.status_code}
+
+        crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        soup = BeautifulSoup(page.content, "html.parser")
+        list_of_threads = soup.select(".structItemContainer-group > .structItem--thread")
+        max_pages = soup.select("ul.pageNav-main > li.pageNav-page:nth-last-of-type(1) > a")[0].text
+        ret_list = list()
+
+        for x in list_of_threads:
+            title = str(x.select_one(".structItem-title").get_text().strip())
+            thread_url = urljoin(direct_url, x.select("a")[0].get("href"))
+            thread_date = x.select_one("time").get("datetime")
+
+            ret_list.append([thread_url, title, crawl_date, thread_date])
+
+        return {"status_code":page.status_code, "max_pages": max_pages, "data": ret_list}
+
+
+
+    def get_thread(self) -> None:
         page = requests.get(url)
         soup = BeautifulSoup(page.content, "html.parser")
         name = soup.select_one(".p-title-value").text
@@ -54,58 +115,8 @@ class xxviii_dayslater():
         return
 
 
-    def get_forum_section(self, url: str, page: int = 1) -> None:
-        url_parse = urlparse(url)
-        starting_page = url_parse._replace(path=f"{url_parse.path}page-{page}").geturl()
-        max_pages = self.get_forum_section_page(starting_page).max_pages
-        #xx = xurl.path.strip('/').split('/')
-        print(f"crawling {url_parse.path} -- {max_pages} pages")
-
-
-        for i in range(page+1, max_pages + 1):
-            xx = url_parse._replace(path=f"{url_parse.path}page-{i}").geturl()
-            get = self.get_forum_section_page(xx)
-            print(f"[{get.status_code}]crawling page {i} of {max_pages}")
-
-            if get.error_cnt == get.thread_cnt:
-                print(f"breaking on page {i} (possibly no newer threads)")
-                break
-        return
-
-
-
-    def get_forum_section_page(self, url: str) -> int:
-        nt = namedtuple('gfsp', ["max_pages", "error_cnt", "thread_cnt", "status_code"])
-
-        #https://www.28dayslater.co.uk/forum/industrial-sites.6/page-2?order=post_date&direction=desc
-        page = requests.get(url)
-        soup = BeautifulSoup(page.content, "html.parser")
-        list_of_threads = soup.select(".structItemContainer-group > .structItem--thread")
-        crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
-
-        max_pages = soup.select("ul.pageNav-main > li.pageNav-page:nth-last-of-type(1) > a")[0].text
-        err_count = 0
-        db.get_cur().execute("BEGIN")
-
-        for x in list_of_threads:
-            title = str(x.select_one(".structItem-title").get_text().strip())
-            thread_url = x.select("a")[0].get("href")
-            thread_url_abs = urljoin(url, thread_url)
-            thread_date = x.select_one("time").get("datetime")
-                    
-            try:
-                db.get_cur().execute("INSERT INTO refs VALUES (NULL, ?, ?, NULL, ?, NULL, ?, NULL)", (thread_url_abs, title, crawl_date, thread_date))
-            except Exception:
-                #find out the real exception type later
-                err_count = err_count+1
-        db.get_cur().execute("COMMIT")
-
-        return nt(int(max_pages), err_count, len(list_of_threads), page.status_code)
-
-
     def check_db():
         return
-
 
 #x = xxviii_dayslater()
 # import xxviii_dayslater as d2l
