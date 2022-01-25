@@ -6,7 +6,12 @@
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css' rel='stylesheet' />
     <style>
-        #map { height: 500px; }
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -25,30 +30,13 @@
         map.addControl(new mapboxgl.NavigationControl());
 
         loadstuff = function() {
+            //https://docs.mapbox.com/mapbox-gl-js/api/sources/#geojsonsource#setdata
             let gb = map.getBounds()
             console.log(gb)
 
             data_url = `http://localhost:8080/bounds?neLat=${gb._ne.lat}&neLng=${gb._ne.lng}&swLat=${gb._sw.lat}&swLng=${gb._sw.lng}`
-            
-
-
-            map.addSource('points_data', {
-                "type":"geojson",
-                "data": data_url
-            });
-            map.addLayer({
-                'id': 'points',
-                'type': 'circle',
-                'source': 'points_data',
-                'paint': {
-                    'circle-color': '#4264fb',
-                    'circle-radius': 8,
-                    'circle-stroke-width': 2,
-                    'circle-stroke-color': '#ffffff'
-                },
-                'filter': ['==', '$type', 'Point']
-            });
-        }
+            map.getSource('source_id').setData(data_url);
+        };
         map.on('click', 'points', (e) => {
             map.flyTo({
                 center: e.features[0].geometry.coordinates
@@ -89,7 +77,27 @@
             popup.remove();
         });
 
-        map.on('load', loadstuff)
+        map.on('load', () => {
+            map.resize();
+            map.addSource('source_id', {
+                "type": 'geojson',
+                "data": {}
+            });
+            map.addLayer({
+                'id': 'points',
+                'type': 'circle',
+                'source': 'source_id',
+                'paint': {
+                    'circle-color': '#4264fb',
+                    'circle-radius': 8,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#ffffff'
+                },
+                'filter': ['==', '$type', 'Point']
+            });
+            loadstuff();
+
+        });
         map.on('moveend', loadstuff)
 
 
