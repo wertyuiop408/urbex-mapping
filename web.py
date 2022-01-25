@@ -3,7 +3,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer, SimpleHTTPRequestHan
 from urllib.parse import parse_qs, urlparse
 import time
 import json
-import sqlite3
+from db import db
 
 hostname = "localhost"
 server_port = 8080
@@ -29,8 +29,8 @@ class MyServer(SimpleHTTPRequestHandler):
             query_parse = parse_qs(urlparse(self.path).query)
             print(self.path)
             query = [query_parse['neLat'][0], query_parse['swLat'][0], query_parse['neLng'][0], query_parse['swLng'][0]]
-            cur.execute("select name, lat, long from places where lat < ? and lat > ? and long < ? and long > ?", query)
-            res = cur.fetchall()
+            db.get_cur().execute("select name, lat, long from places where lat < ? and lat > ? and long < ? and long > ?", query)
+            res = db.get_cur().fetchall()
             print(f"found {len(res)} results")
 
 
@@ -65,12 +65,6 @@ class MyServer(SimpleHTTPRequestHandler):
             #print(parse_qs(f"http://localhost{self.path}"))
 
 def main() -> None:
-    global cur
-    conn = sqlite3.connect('urbex.db')
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-
-
     webServer = HTTPServer((hostname, server_port), MyServer)
     print(f"Server started http://{hostname}:{server_port}")
 
@@ -80,9 +74,6 @@ def main() -> None:
         pass
 
     webServer.server_close()
-    #close db
-    conn.commit()
-    conn.close()
     print("Server stopped.")
 
 
