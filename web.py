@@ -15,54 +15,57 @@ class MyServer(SimpleHTTPRequestHandler):
         pass
 
     def do_GET(self):
-        self.send_response(200)
-
         if self.path == "/":
+            self.send_response(200)
             self.path = "index.html"
             return SimpleHTTPRequestHandler.do_GET(self)
+        elif self.path.startswith("/bounds?"):
+            self.send_response(200)
+            self.map_query()
+
         else:
-            self.send_header("Content-type", "application/json")
-            self.end_headers()
+            self.send_response(404)
+            return
 
 
-            
-            query_parse = parse_qs(urlparse(self.path).query)
-            print(self.path)
-            query = [query_parse['neLat'][0], query_parse['swLat'][0], query_parse['neLng'][0], query_parse['swLng'][0]]
-            db.get_cur().execute("select name, lat, long from places where lat < ? and lat > ? and long < ? and long > ?", query)
-            res = db.get_cur().fetchall()
-            print(f"found {len(res)} results")
+    def map_query(self) -> None:
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
 
 
-            geojson = {
-                'type': 'FeatureCollection',
-                'features': list()
-            }
+        
+        query_parse = parse_qs(urlparse(self.path).query)
+        print(self.path)
+        query = [query_parse['neLat'][0], query_parse['swLat'][0], query_parse['neLng'][0], query_parse['swLng'][0]]
+        db.get_cur().execute("select name, lat, long from places where lat < ? and lat > ? and long < ? and long > ?", query)
+        res = db.get_cur().fetchall()
+        print(f"found {len(res)} results")
+
+
+        geojson = {
+            'type': 'FeatureCollection',
+            'features': list()
+        }
 
 
 
-            for x in res:
-                yy = {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [x["long"], x["lat"]]
-                    },
-                    "properties": {
-                        "name": x['name']
-                    }
+        for x in res:
+            yy = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [x["long"], x["lat"]]
+                },
+                "properties": {
+                    "name": x['name']
                 }
-                geojson["features"].append(yy)
+            }
+            geojson["features"].append(yy)
 
 
-            json_out = json.dumps(geojson)
-            self.wfile.write(bytes(json_out, "utf-8"))
+        json_out = json.dumps(geojson)
+        self.wfile.write(bytes(json_out, "utf-8"))
 
-            """
-            long is hori
-            lat is vert
-            """
-            #print(parse_qs(f"http://localhost{self.path}"))
 
 def main() -> None:
     webServer = HTTPServer((hostname, server_port), MyServer)
