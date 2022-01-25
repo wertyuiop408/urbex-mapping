@@ -35,18 +35,20 @@ class xxviii_dayslater:
         "solomon.123/"
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
+        #use this var to force looking through sections we already have crawled
         self.force = False
         return
 
 
-    def crawl(self):
+    def crawl(self) -> None:
+        #crawl each section listed in the list
         for section in self.sections:
             self.crawl_section(section)
         return
 
 
-    def crawl_section(self, section, page = 1) -> None:
+    def crawl_section(self, section: str, page: int = 1) -> None:
         print(f"{section} starting crawl")
         sql_stmnt = "INSERT OR IGNORE INTO refs(url, title, date_inserted, date_post) VALUES (?, ? ,? ,?)"
         total_entries = 0
@@ -65,6 +67,7 @@ class xxviii_dayslater:
             db.get_cur().execute("BEGIN")
             inserted_count = db.get_cur().executemany(sql_stmnt, entry["data"]).rowcount
             db.get_cur().execute("COMMIT")
+            
             inserted_entries += inserted_count
             total_entries += len(entry["data"])
             if inserted_count == 0 and self.force == False:
@@ -82,7 +85,7 @@ class xxviii_dayslater:
         return
 
 
-    def get_section_page(self, direct_url):
+    def get_section_page(self, direct_url: str) -> dict:
         page = requests.get(direct_url)
 
         if page.status_code != 200:
@@ -115,9 +118,6 @@ class xxviii_dayslater:
         raise NotImplementedError
         return
 
-
-    def check_db():
-        return
 
 #x = xxviii_dayslater()
 # import xxviii_dayslater as d2l
