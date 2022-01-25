@@ -38,7 +38,7 @@ class xxviii_dayslater:
     def __init__(self):
         self.force = False
         return
-        
+
 
     def crawl(self):
         for section in self.sections:
@@ -94,9 +94,10 @@ class xxviii_dayslater:
         max_pages = soup.select("ul.pageNav-main > li.pageNav-page:nth-last-of-type(1) > a")[0].text
         ret_list = list()
 
+
         for x in list_of_threads:
             title = str(x.select_one(".structItem-title").get_text().strip())
-            thread_url = urljoin(direct_url, x.select("a")[0].get("href"))
+            thread_url = urljoin(direct_url, x.select_one(".structItem-title > a:last-of-type").get("href"))
             thread_date = x.select_one("time").get("datetime")
 
             ret_list.append([thread_url, title, crawl_date, thread_date])
