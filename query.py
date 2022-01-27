@@ -77,6 +77,26 @@ def main() -> None:
     ORDER BY tot ASC
     """
 
+    #show the most popular beginning letters of a word from reports, e.g. "sheff"
+    query3 = """
+    SELECT
+        SUBSTR(
+            TRIM(
+                SUBSTR(
+                    RTRIM(title, 
+                        REPLACE(title, '-', '')
+                    ),/*neat trick. Remove a character and use r/l/trim to filter everything up to that point. we using it to remove everything after the last '-'*/
+                10),/* grab part of title after 'Report -' */
+            '- '),
+        0, 5) as foo, /* grab the first 5 characters*/
+        count(*) as cnt 
+        FROM refs WHERE place_id IS NULL
+        AND title LIKE 'Report -%' AND foo <> ''
+        GROUP BY foo
+        ORDER By cnt DESC
+    """
+
+
     #replacing all of these in SQL is not pretty
     word_list = [
         "on",
