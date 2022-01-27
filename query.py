@@ -12,43 +12,69 @@ def main() -> None:
     parser.add_argument("--min", type=int)
     args = parser.parse_args()
 
-
+    #used for if we want to filter the reports that have a certain word. e.g. %hospital%
     filt = ""
     if args.filter:
         filt = f"and lower(title) like '{args.filter}'"
 
+    #find all entries that don't have a PLACE ID and find the most common words (uses split to remove a lot of the unwanted)
     query = f"""
-    with split(name, rest, lev) as (
-        select NULL as name, trim(lower(title), '!-().,"`?0123456789 &/')|| ' ' as rest, 1 as lev from refs where place_id is NULL {filt}
-        union all
-        select trim(lower(substr(rest, 1, instr(rest, ' '))), '!-().,"`?0123456789 &/'),
-                 substr(rest, instr(rest, ' ') + 1),
-                 lev + 1
-        from split where rest <> '' and lev < 10
-    )
-    select name, count(name) as tot from split where name <> ''
-    group by name
-    order by tot desc
-    limit 200
-    """
-
-    query2 = f"""
     WITH split(name, rest, lev) AS (
-        SELECT NULL AS name, TRIM(REPLACE(LOWER(title), 'report -', ''), ',(') AS rest, 1 AS lev FROM refs WHERE title LIKE 'Report%' 
-        AND place_id IS NULL {filt}
+        SELECT
+            NULL AS name,
+            TRIM(
+                LOWER(title),
+            '!-().,"`?0123456789 &/')|| ' ' AS rest,
+            1 AS lev FROM refs WHERE place_id IS NULL {filt}
         UNION ALL
-        SELECT TRIM(
-            REPLACE(LOWER(
-                substr(rest, 1, instr(rest, ' '))
-            ), 'report -', '')
-        , ',() /-&'),
-                 substr(rest, instr(rest, ' ') + 1),
-                 lev + 1
+        SELECT
+            TRIM(
+                LOWER(
+                    substr(rest, 1, instr(rest, ' '))
+                ),
+            '!-().,"`?0123456789 &/'),
+            substr(rest, instr(rest, ' ') + 1),
+            lev + 1
         FROM split WHERE rest <> '' AND lev < 10
     )
+    SELECT name, count(name) AS tot FROM split WHERE name <> ''
+    GROUP BY name
+    ORDER BY tot DESC
+    LIMIT 200
+    """
+
+
+    #select all reports that have no place ID, show the most common words
+    query2 = f"""
+    WITH split(name, rest, lev) AS (
+        SELECT
+            NULL AS name, 
+            TRIM(
+                REPLACE(
+                    LOWER(title),
+                'report -', ''),
+            ',(') AS rest,
+            1 AS lev FROM refs WHERE title LIKE 'Report%' 
+        AND place_id IS NULL {filt}
+
+        UNION ALL
+        SELECT 
+            TRIM(
+                REPLACE(
+                    LOWER(
+                        substr(rest, 1, instr(rest, ' '))
+                    ),
+                'report -', ''),
+            ',() /-&'),
+
+            substr(rest, instr(rest, ' ') + 1),
+            lev + 1
+        FROM split WHERE rest <> '' AND lev < 10
+    )
+
     SELECT name, count(name) as tot from split where name <> ''
     GROUP BY name
-    ORDER BY tot asc
+    ORDER BY tot ASC
     """
 
     #replacing all of these in SQL is not pretty
