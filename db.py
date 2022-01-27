@@ -56,12 +56,12 @@ class _db(object):
             row_id INTEGER PRIMARY KEY,
             url TEXT,
             title TEXT,
-            place_id INTEGER,
+            place_id INTEGER DEFAULT 0,
             date_inserted TEXT, /* date we inserted the entry into the db*/
             date_scrape TEXT, /* date that the full thread was scraped */
             date_post TEXT, /* date that a thread was posted */
             raw TEXT,
-            UNIQUE("url")
+            CONSTRAINT dupes UNIQUE("url", "place_id")
             )""")
 
         #create a table to handle changes and modifications?

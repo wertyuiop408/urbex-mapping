@@ -25,7 +25,7 @@ def main() -> None:
             TRIM(
                 LOWER(title),
             '!-().,"`?0123456789 &/')|| ' ' AS rest,
-            1 AS lev FROM refs WHERE place_id IS NULL {filt}
+            1 AS lev FROM refs WHERE place_id IS 0 {filt}
         UNION ALL
         SELECT
             TRIM(
@@ -55,7 +55,7 @@ def main() -> None:
                 'report -', ''),
             ',(') AS rest,
             1 AS lev FROM refs WHERE title LIKE 'Report%' 
-        AND place_id IS NULL {filt}
+        AND place_id IS 0 {filt}
 
         UNION ALL
         SELECT 
@@ -72,7 +72,7 @@ def main() -> None:
         FROM split WHERE rest <> '' AND lev < 10
     )
 
-    SELECT name, count(name) as tot from split where name <> ''
+    SELECT name, count(name) AS tot FROM split WHERE name <> ''
     GROUP BY name
     ORDER BY tot ASC
     """
@@ -90,7 +90,7 @@ def main() -> None:
             '- '),
         0, 5) as foo, /* grab the first 5 characters*/
         count(*) as cnt 
-        FROM refs WHERE place_id IS NULL
+        FROM refs WHERE place_id IS 0
         AND title LIKE 'Report -%' AND foo <> ''
         GROUP BY foo
         ORDER By cnt DESC
