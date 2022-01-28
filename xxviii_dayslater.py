@@ -109,12 +109,14 @@ class xxviii_dayslater:
 
 
 
-    def get_thread(self) -> None:
+    def get_thread(self, url: str) -> None:
         page = requests.get(url)
         soup = BeautifulSoup(page.content, "html.parser")
         name = soup.select_one(".p-title-value").text
+        thread_date = soup.select_one(".u-concealed > time").get("datetime")
+
         tags = [i.text for i in soup.select(".tagItem")]
-        print(name, tags)
+        return [name, tags, thread_date]
         raise NotImplementedError
         return
 

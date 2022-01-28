@@ -12,15 +12,35 @@ def main() -> None:
     
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--add', nargs=2)
+    parser.add_argument('--ref', nargs=2)
     args = parser.parse_args()
     if args.add:
         add_place(args.add)
+        return
+    elif args.ref:
+        add_ref(args.ref)
         return
 
     x = d2l.xxviii_dayslater()
     x.crawl()
     
     return
+
+
+def add_ref(args):
+    x = d2l.xxviii_dayslater()
+    thread = x.get_thread(args[0])
+    title = thread[0]
+    thread_date = thread[2]
+    
+    url = args[0]
+    dt = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    #need the title and date
+    db.get_cur().execute("INSERT INTO refs(url, place_id, title, date_inserted, date_post) VALUES (?, ?, ?, ?, ?)", [url, int(args[1]), title, dt, thread_date])
+
+    return
+
+
 def add_place(args):
     name = args[0]
     coords = (args[1]).split(',')
