@@ -1,10 +1,11 @@
-#dlater.py
 from datetime import datetime, timezone
 from urllib.parse import urlparse, urljoin
 from collections import namedtuple
 import string
 import requests
+
 from bs4 import BeautifulSoup
+
 from db import db
 
 
@@ -44,13 +45,18 @@ class xxviii_dayslater:
     def crawl(self) -> None:
         #crawl each section listed in the list
         for section in self.sections:
-            self.crawl_section(section)
+            sect = self.crawl_section(section)
+            print(f"{section} Inserted {sect[0]}/{sect[1]} rows from {sect[2]}/{sect[3]} pages")
+
         return
 
 
-    def crawl_section(self, section: str, page: int = 1) -> None:
+    def crawl_section(self, section: str, page: int = 1) -> tuple:
         print(f"{section} starting crawl")
-        sql_stmnt = "INSERT OR IGNORE INTO refs(url, title, date_inserted, date_post) VALUES (?, ? ,? ,?)"
+
+        # we still want to allow duplicate url in general, but for crawling, we only want to have 1
+        sql_stmnt = """INSERT OR IGNORE INTO refs(url, title, date_inserted, date_post) 
+            SELECT ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM refs WHERE url = ?1)"""
         total_entries = 0
         inserted_entries = 0
         max_pages = 0
@@ -59,20 +65,23 @@ class xxviii_dayslater:
             abs_url = f"{self.base_url}{section}page-{page}{self.suffix_url}"
             entry = self.get_section_page(abs_url)
 
+            #make sure that if the page fails, then we stop crawling that section
             if entry["status_code"] != 200:
                 print(f"[{entry['status_code']}]{section} Page:{page}")
                 break
 
-            max_pages = int(entry["max_pages"])
+            max_pages = entry["max_pages"]
             db.get_cur().execute("BEGIN")
             inserted_count = db.get_cur().executemany(sql_stmnt, entry["data"]).rowcount
             db.get_cur().execute("COMMIT")
             
             inserted_entries += inserted_count
             total_entries += len(entry["data"])
+
+
             if inserted_count == 0 and self.force == False:
-                print(f"{section} 0 entries inserted")
-                return
+                #print(f"{section} 0 entries inserted")
+                break
 
             if inserted_count < len(entry["data"]):
                 print(f"{section}, page {page} missing entries. {inserted_count}/{len(entry['data'])} inserted")
@@ -81,8 +90,7 @@ class xxviii_dayslater:
             if page > max_pages:
                 break
 
-        print(f"{section} Inserted {inserted_entries}/{total_entries} rows from {page}/{max_pages} pages")
-        return
+        return (inserted_entries, total_entries, page, max_pages)
 
 
     def get_section_page(self, direct_url: str) -> dict:
@@ -94,7 +102,7 @@ class xxviii_dayslater:
         crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
         soup = BeautifulSoup(page.content, "html.parser")
         list_of_threads = soup.select(".structItemContainer-group > .structItem--thread")
-        max_pages = soup.select("ul.pageNav-main > li.pageNav-page:nth-last-of-type(1) > a")[0].text
+        max_pages = int(soup.select("ul.pageNav-main > li.pageNav-page:nth-last-of-type(1) > a")[0].text)
         ret_list = list()
 
 
