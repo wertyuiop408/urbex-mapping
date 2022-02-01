@@ -7,9 +7,10 @@ from db import db
 
 def main() -> None:
 
+    db.connect()
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument("filter", nargs="?")
-    parser.add_argument("--min", type=int)
+    parser.add_argument("--min", type=int, default=0)
     args = parser.parse_args()
 
     #used for if we want to filter the reports that have a certain word. e.g. %hospital%
@@ -73,7 +74,7 @@ def main() -> None:
     )
 
     SELECT name, count(name) AS tot FROM split WHERE name <> ''
-    GROUP BY name
+    GROUP BY name HAVING tot > ?
     ORDER BY tot ASC
     """
 
@@ -137,9 +138,7 @@ def main() -> None:
 
     start = time.perf_counter()
 
-    for x in db.get_cur().execute(query2):
-        if args.min and x["tot"] < args.min:
-            continue
+    for x in db.get_cur().execute(query2, [args.min]):
 
         name = re.sub(r"\s+", "", x["name"])        
         if name not in word_list:
