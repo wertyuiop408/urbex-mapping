@@ -5,14 +5,20 @@ __all__ = ["db"]
 
 class _db(object):
     def __init__(self) -> None:
-        self.conn = sqlite3.connect('urbex.db')
+        return
+
+    def connect(self, db: str = "urbex.db") -> None:
+        self.conn = sqlite3.connect(db)
+        #self.conn = sqlite3.connect(':memory:')
         self.conn.row_factory = sqlite3.Row
         self.cur = self.conn.cursor()
+        self.create_tables()
         return
 
     def __del__(self) -> None:
-        self.conn.commit()
-        self.conn.close()
+        if hasattr(self, "conn"):
+            self.conn.commit()
+            self.conn.close()
         return
 
     def get_cur(self):
