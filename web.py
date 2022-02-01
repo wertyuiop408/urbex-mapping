@@ -3,12 +3,11 @@ from http.server import BaseHTTPRequestHandler, HTTPServer, SimpleHTTPRequestHan
 from urllib.parse import parse_qs, urlparse
 import time
 import json
+
 from db import db
 
 hostname = "localhost"
 server_port = 8080
-
-
 
 class MyServer(SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -68,6 +67,7 @@ class MyServer(SimpleHTTPRequestHandler):
 
 
 def main() -> None:
+    db.connect()
     webServer = HTTPServer((hostname, server_port), MyServer)
     print(f"Server started http://{hostname}:{server_port}")
 
@@ -78,7 +78,6 @@ def main() -> None:
 
     webServer.server_close()
     print("Server stopped.")
-
 
 
 if __name__ == "__main__":

@@ -9,12 +9,14 @@ import xxviii_dayslater as d2l
 
 
 def main() -> None:
-    db.create_tables()
+    db.connect()
     
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--add', nargs=2)
     parser.add_argument('--ref', nargs=2)
     args = parser.parse_args()
+
+
     if args.add:
         add_place(args.add)
         return
