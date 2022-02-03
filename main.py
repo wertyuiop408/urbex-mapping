@@ -46,9 +46,11 @@ def add_ref(args):
 
 def add_place(args):
     name = args[0]
-    coords = (args[1]).split(',')
-    lat = float(coords[0])
-    lng = float(coords[1])
+    coords = list(map(float, args[1].split(',')))
+
+    #clamp to 6 decimals, don't need higher precision
+    lat = float(f"{coords[0]:.6f}")
+    lng = float(f"{coords[1]:.6f}")
     dt = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
     rng = 0.05
