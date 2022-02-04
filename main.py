@@ -14,6 +14,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--add', nargs=2)
     parser.add_argument('--ref', nargs=2)
+    parser.add_argument('--locate', type=str)
     args = parser.parse_args()
 
 
@@ -22,6 +23,11 @@ def main() -> None:
         return
     elif args.ref:
         add_ref(args.ref)
+        return
+    elif args.locate:
+        for x in db.get_cur().execute("SELECT row_id, name FROM places WHERE name LIKE ?", [f"%{args.locate}%"]):
+            print(f"[{x['row_id']}] {x['name']}")
+
         return
 
     x = d2l.xxviii_dayslater()
