@@ -12,10 +12,24 @@
             bottom: 0;
             width: 100%;
         }
+        #menu {
+            position: absolute;
+            padding: 10px;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 700 !important
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
+    <div id="menu" class="mapboxgl-ctrl mapboxgl-ctrl-group">
+        <input id="satellite-streets-v11" type="radio" name="rtoggle" value="satellite">    
+        <label for="satellite-streets-v11">satellite</label>
+        
+        <input id="streets-v11" type="radio" name="rtoggle" value="streets" checked="checked">
+        <label for="streets-v11">streets</label>
+    
+    </div>
     <script>
 
         mapboxgl.accessToken = 'pk.eyJ1Ijoid2VydHl1aW9wNDA4IiwiYSI6ImNreW1yd2NwcjNpbnAyb3A4dzVoYThlczcifQ.Z7Ysk6cBE7VmZArynxX9Kw';
@@ -28,14 +42,28 @@
 
         // Add zoom and rotation controls to the map.
         map.addControl(new mapboxgl.NavigationControl());
+        const layerList = document.getElementById('menu');
+        const inputs = layerList.getElementsByTagName('input');
+         
+        for (const input of inputs) {
+            input.onclick = (layer) => {
+                const layerId = layer.target.id;
+                map.setStyle('mapbox://styles/mapbox/' + layerId);
+            };
+        }
+        map.on('style.load', () => {
+            addDataLayer()
+            loadstuff()
+        });
 
         loadstuff = function() {
             //https://docs.mapbox.com/mapbox-gl-js/api/sources/#geojsonsource#setdata
             let gb = map.getBounds()
-            console.log(gb)
-
             data_url = `http://localhost:8080/bounds?neLat=${gb._ne.lat}&neLng=${gb._ne.lng}&swLat=${gb._sw.lat}&swLng=${gb._sw.lng}`
-            map.getSource('source_id').setData(data_url);
+            
+            xx = map.getSource('source_id')
+            console.log(xx)
+            xx.setData(data_url);
         };
         map.on('click', 'points', (e) => {
             map.flyTo({
@@ -79,6 +107,13 @@
 
         map.on('load', () => {
             map.resize();
+            addDataLayer();
+            loadstuff();
+
+        });
+        map.on('moveend', loadstuff)
+
+        function addDataLayer() {
             map.addSource('source_id', {
                 "type": 'geojson',
                 "data": {}
@@ -95,10 +130,7 @@
                 },
                 'filter': ['==', '$type', 'Point']
             });
-            loadstuff();
-
-        });
-        map.on('moveend', loadstuff)
+        }
 
 
     </script>
