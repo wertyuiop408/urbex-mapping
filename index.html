@@ -60,10 +60,13 @@
             //https://docs.mapbox.com/mapbox-gl-js/api/sources/#geojsonsource#setdata
             let gb = map.getBounds()
             data_url = `http://localhost:8080/bounds?neLat=${gb._ne.lat}&neLng=${gb._ne.lng}&swLat=${gb._sw.lat}&swLng=${gb._sw.lng}`
-            
+            if (window.location.host == "wertyuiop408.github.io") {
+                data_url = "./data.json"
+            }
+
             xx = map.getSource('source_id')
             console.log(xx)
-            xx.setData(data_url);
+            xx.setData('./data.json');
         };
         map.on('click', 'points', (e) => {
             map.flyTo({

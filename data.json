@@ -1,0 +1,486 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    1.172306,
+                    51.085917
+                ]
+            },
+            "properties": {
+                "name": "Royal Victoria Hospital"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    0.0340464,
+                    53.534422
+                ]
+            },
+            "properties": {
+                "name": "Haile Sand Fort"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -0.9805727005004882,
+                    51.41818481564516
+                ]
+            },
+            "properties": {
+                "name": "Courage Brewery"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -2.588518,
+                    51.45435
+                ]
+            },
+            "properties": {
+                "name": "Courage Brewery"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -0.973017,
+                    51.148088
+                ]
+            },
+            "properties": {
+                "name": "Manor Park Brewery, Molson Coors"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -0.193211,
+                    51.457592
+                ]
+            },
+            "properties": {
+                "name": "Ram Brewery"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -2.338854,
+                    54.786025
+                ]
+            },
+            "properties": {
+                "name": "Nenthead Mines: Brewery Shaft"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -2.341129,
+                    54.786087
+                ]
+            },
+            "properties": {
+                "name": "Rampgill Mine"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -2.349773,
+                    54.778665
+                ]
+            },
+            "properties": {
+                "name": "Capelcleugh Mine"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -2.331808,
+                    54.780425
+                ]
+            },
+            "properties": {
+                "name": "Smallcleugh Mine"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -1.469792,
+                    53.80634
+                ]
+            },
+            "properties": {
+                "name": "Seacroft Hospital"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -0.172312,
+                    51.437401
+                ]
+            },
+            "properties": {
+                "name": "Springfield University Hospital"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -2.120935,
+                    52.591355
+                ]
+            },
+            "properties": {
+                "name": "Springfield Brewery"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -2.23311,
+                    51.737843
+                ]
+            },
+            "properties": {
+                "name": "Springfield Engineering"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    0.516955554485321,
+                    51.28495381818373
+                ]
+            },
+            "properties": {
+                "name": "County Central Library"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    0.678246,
+                    51.240519
+                ]
+            },
+            "properties": {
+                "name": "Malthouse Farm"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -0.5318659543991089,
+                    53.19702246269987
+                ]
+            },
+            "properties": {
+                "name": "St John's Hospital"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    0.4587,
+                    51.7185
+                ]
+            },
+            "properties": {
+                "name": "St John's Hospital"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -2.114377,
+                    52.811266
+                ]
+            },
+            "properties": {
+                "name": "St George's Hospital"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -1.683918,
+                    55.1763
+                ]
+            },
+            "properties": {
+                "name": "St George's Hospital"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -0.450802,
+                    52.983853
+                ]
+            },
+            "properties": {
+                "name": "Rauceby Hospital"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -0.314615,
+                    51.632858
+                ]
+            },
+            "properties": {
+                "name": "The Royal National Orthopaedic Hospital: Zachary Merton Ward"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    0.544038,
+                    51.634406
+                ]
+            },
+            "properties": {
+                "name": "St Lukes Chapel"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -2.7037310600280757,
+                    53.75657852726408
+                ]
+            },
+            "properties": {
+                "name": "St Joseph's Orphanage"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -4.642353,
+                    55.792262
+                ]
+            },
+            "properties": {
+                "name": "St. Joseph’s Missionary College"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -0.24188429117202756,
+                    51.62057784187525
+                ]
+            },
+            "properties": {
+                "name": "St. Joseph’s Missionary College"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -0.220071,
+                    51.618087
+                ]
+            },
+            "properties": {
+                "name": "The National Institute for Medical Research"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -1.4688098430633543,
+                    53.386483108016066
+                ]
+            },
+            "properties": {
+                "name": "Woolen Signs"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -1.458238,
+                    53.379655
+                ]
+            },
+            "properties": {
+                "name": "Park Hill Flats"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -0.237419,
+                    51.417859
+                ]
+            },
+            "properties": {
+                "name": "Atkinson Morley Hospital"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -0.633371,
+                    51.371616
+                ]
+            },
+            "properties": {
+                "name": "BOC Windlesham"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -1.121375,
+                    52.581228
+                ]
+            },
+            "properties": {
+                "name": "Wigston Swimming Pool"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -1.111043,
+                    53.163117
+                ]
+            },
+            "properties": {
+                "name": "Clipstone Colliery"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -3.556063,
+                    51.727356
+                ]
+            },
+            "properties": {
+                "name": "Tower Colliery"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -0.751764,
+                    50.830559
+                ]
+            },
+            "properties": {
+                "name": "Portfield Fuel Depot"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -0.12496,
+                    52.347233
+                ]
+            },
+            "properties": {
+                "name": "RAF Wyton Photography Factory"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -0.421722,
+                    53.685486
+                ]
+            },
+            "properties": {
+                "name": "Kimberly Clark Nappy Factory"
+            }
+        }
+    ]
+}
