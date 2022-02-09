@@ -65,8 +65,7 @@
             }
 
             xx = map.getSource('source_id')
-            console.log(xx)
-            xx.setData('./data.json');
+            xx.setData(data_url);
         };
         map.on('click', 'points', (e) => {
             map.flyTo({
