@@ -14,7 +14,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--add', nargs=2)
     parser.add_argument('--ref', nargs=2)
-    parser.add_argument('--locate', type=str)
+    parser.add_argument('--locate', '-l', type=str, nargs="*")
     args = parser.parse_args()
 
 
@@ -25,8 +25,9 @@ def main() -> None:
         add_ref(args.ref)
         return
     elif args.locate:
-        for x in db.get_cur().execute("SELECT row_id, name FROM places WHERE name LIKE ?", [f"%{args.locate}%"]):
-            print(f"[{x['row_id']}] {x['name']}")
+        for place in args.locate:
+            for x in db.get_cur().execute("SELECT row_id, name FROM places WHERE name LIKE ?", [f"%{place.strip()}%"]):
+                print(f"[{x['row_id']}] {x['name']}")
 
         return
 
