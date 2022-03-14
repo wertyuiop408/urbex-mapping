@@ -31,13 +31,14 @@
     
     </div>
     <script>
-
+        //public key
         mapboxgl.accessToken = 'pk.eyJ1Ijoid2VydHl1aW9wNDA4IiwiYSI6ImNreW1yd2NwcjNpbnAyb3A4dzVoYThlczcifQ.Z7Ysk6cBE7VmZArynxX9Kw';
         const map = new mapboxgl.Map({
             container: 'map', // container ID
             style: 'mapbox://styles/mapbox/streets-v11', // style URL
             center: [-2.224585, 51.740615], // starting position [lng, lat]
-            zoom: 13 // starting zoom
+            zoom: 13, // starting zoom
+            pitchWithRotate: false
         });
 
         // Add zoom and rotation controls to the map.
@@ -87,7 +88,11 @@
 
             // Copy coordinates array.
             const coordinates = e.features[0].geometry.coordinates.slice();
-            const description = e.features[0].properties.name;
+            const description = `${e.features[0].properties.name}<br/>
+                ${coordinates[1].toFixed(5)}, ${coordinates[0].toFixed(5)}
+            `;
+            
+
              
             // Ensure that if the map is zoomed out such that multiple
             // copies of the feature are visible, the popup appears

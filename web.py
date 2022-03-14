@@ -1,6 +1,9 @@
 #web.py
 from http.server import BaseHTTPRequestHandler, HTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
+from datetime import datetime, timezone
+
+import argparse
 import time
 import json
 
@@ -36,7 +39,7 @@ class MyServer(SimpleHTTPRequestHandler):
         query_parse = parse_qs(urlparse(self.path).query)
         print(self.path)
         query = [query_parse['neLat'][0], query_parse['swLat'][0], query_parse['neLng'][0], query_parse['swLng'][0]]
-        db.get_cur().execute("select name, lat, long from places where lat < ? and lat > ? and long < ? and long > ?", query)
+        db.get_cur().execute("select row_id, name, lat, long from places where lat < ? and lat > ? and long < ? and long > ?", query)
         res = db.get_cur().fetchall()
         print(f"found {len(res)} results")
 
@@ -56,7 +59,8 @@ class MyServer(SimpleHTTPRequestHandler):
                     "coordinates": [x["long"], x["lat"]]
                 },
                 "properties": {
-                    "name": x['name']
+                    "name": x['name'],
+                    "pid": x['row_id']
                 }
             }
             geojson["features"].append(yy)
@@ -66,8 +70,50 @@ class MyServer(SimpleHTTPRequestHandler):
         self.wfile.write(bytes(json_out, "utf-8"))
 
 
+def data_file() -> None:
+    out_file = "data.json"
+    geojson = {
+        'type': 'FeatureCollection',
+        'features': list()
+    }
+
+    #1 = demolished
+    db.get_cur().execute("SELECT * FROM places WHERE status IS NULL OR status IS NOT 1")
+    for row in db.get_cur().fetchall():
+        
+        yy = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [row["long"], row["lat"]]
+            },
+            "properties": {
+                "name": row['name'],
+                "pid": row['row_id']
+            }
+        }
+        geojson["features"].append(yy)
+    json_out = json.dumps(geojson)
+    with open(out_file, "w") as fp:
+        tt = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        fp.write(f"//{tt}\n")
+        fp.write(json_out)
+
+    return
+
+
 def main() -> None:
     db.connect()
+    
+    parser = argparse.ArgumentParser(allow_abbrev=False)
+    parser.add_argument('--dump', action="store_true")
+    args = parser.parse_args()
+
+    print(args)
+    if args.dump:
+        data_file()
+        return
+
     webServer = HTTPServer((hostname, server_port), MyServer)
     print(f"Server started http://{hostname}:{server_port}")
 
