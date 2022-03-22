@@ -49,11 +49,19 @@ class _db(object):
 
 
         #are tags categories?
-        self.cur.execute("""CREATE TABLE IF NOT EXISTS "tags" (
+        self.cur.execute("""CREATE TABLE IF NOT EXISTS "tag_rel" (
             place_id INTEGER,
-            tag TEXT,
-            UNIQUE("place_id", "tag"),
-            FOREIGN KEY ("place_id") REFERENCES places("row_id")
+            tag_id INTEGER,
+            FOREIGN KEY("place_id") REFERENCES places("row_id"),
+            FOREIGN KEY("tag_id") REFERENCES tags("row_id"),
+            UNIQUE("place_id", "tag_id")
+            )""")
+
+
+        self.cur.execute("""CREATE TABLE IF NOT EXISTS "tags" (
+            row_id INTEGER PRIMARY KEY,
+            "tag" TEXT,
+            UNIQUE("tag")
             )""")
 
 

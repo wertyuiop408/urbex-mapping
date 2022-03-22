@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from math import radians, cos, sin, asin, sqrt
 
 from db import db
+from tags import add_tag
 import xxviii_dayslater as d2l
 
 
@@ -12,9 +13,10 @@ def main() -> None:
     db.connect()
     
     parser = argparse.ArgumentParser(allow_abbrev=False)
-    parser.add_argument('--add', nargs=2)
-    parser.add_argument('--ref', nargs=2)
+    parser.add_argument('--add', nargs=2)#--add "place name" "lat, long"
+    parser.add_argument('--ref', nargs=2)#--ref "url" "place_id"
     parser.add_argument('--locate', '-l', type=str, nargs="*")
+    parser.add_argument('--tag', nargs=2)#--tag "id" "tag"
     args = parser.parse_args()
 
 
@@ -28,7 +30,8 @@ def main() -> None:
         for place in args.locate:
             for x in db.get_cur().execute("SELECT row_id, name FROM places WHERE name LIKE ?", [f"%{place.strip()}%"]):
                 print(f"[{x['row_id']}] {x['name']}")
-
+    elif args.tag:
+        add_tag(args.tag[0], args.tag[1])
         return
 
     x = d2l.xxviii_dayslater()
