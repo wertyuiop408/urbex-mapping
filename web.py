@@ -96,7 +96,7 @@ def data_file() -> None:
     json_out = json.dumps(geojson)
     with open(out_file, "w") as fp:
         tt = datetime.now(timezone.utc).isoformat(timespec="seconds")
-        fp.write(f"//{tt} -- {len(geojson["features"])} entries\n")
+        fp.write(f"//{tt} -- {len(geojson['features'])} entries\n")
         fp.write(json_out)
 
     return
