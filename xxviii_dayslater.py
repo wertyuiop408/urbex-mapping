@@ -43,11 +43,16 @@ class xxviii_dayslater:
 
 
     def crawl(self) -> None:
+        #total entries
+        total_in = 0
+
         #crawl each section listed in the list
         for section in self.sections:
             sect = self.crawl_section(section)
+            total_in += sect[0]
             print(f"{section} Inserted {sect[0]}/{sect[1]} rows from {sect[2]}/{sect[3]} pages")
 
+        print(f"Total inserted: {total_in}")
         return
 
 
