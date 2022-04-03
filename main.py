@@ -14,7 +14,7 @@ def main() -> None:
     
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--add', nargs=2)#--add "place name" "lat, long"
-    parser.add_argument('--ref', nargs=2)#--ref "url" "place_id"
+    parser.add_argument('--ref', nargs="*")#--ref "url" "place_id"
     parser.add_argument('--locate', '-l', type=str, nargs="*")
     parser.add_argument('--tag', nargs=2)#--tag "id" "tag"
     args = parser.parse_args()
@@ -30,6 +30,7 @@ def main() -> None:
         for place in args.locate:
             for x in db.get_cur().execute("SELECT row_id, name FROM places WHERE name LIKE ?", [f"%{place.strip()}%"]):
                 print(f"[{x['row_id']}] {x['name']}")
+        return
     elif args.tag:
         add_tag(args.tag[0], args.tag[1])
         return
@@ -41,22 +42,33 @@ def main() -> None:
 
 
 def add_ref(args):
+    parser = argparse.ArgumentParser(allow_abbrev=False)
+    parser.add_argument("url", type=str)
+    parser.add_argument("pid", type=int, nargs="*")
+    args = parser.parse_args(args)
+
     x = d2l.xxviii_dayslater()
-    thread = x.get_thread(args[0])
+    thread = x.get_thread(args.url)
     title = thread[0]
     thread_date = thread[2]
     
-    url = args[0]
     dt = datetime.now(timezone.utc).isoformat(timespec="seconds")
     #need the title and date
-    db.get_cur().execute("INSERT INTO refs(url, place_id, title, date_inserted, date_post) VALUES (?, ?, ?, ?, ?)", [url, int(args[1]), title, dt, thread_date])
 
+    db.get_cur().execute("BEGIN")
+    for pid in args.pid:
+        db.get_cur().execute("INSERT INTO refs(url, place_id, title, date_inserted, date_post) VALUES (?, ?, ?, ?, ?)", [args.url, int(pid), title, dt, thread_date])
+    db.get_cur().execute("COMMIT")
     return
 
 
 def add_place(args):
-    name = args[0]
-    coords = list(map(float, args[1].split(',')))
+    parser = argparse.ArgumentParser(allow_abbrev=False)
+    parser.add_argument("name", type=str)
+    parser.add_argument("latlng", type=str)
+    args = parser.parse_args(args)
+
+    coords = list(map(float, args.latlng.split(',')))
 
     #clamp to 6 decimals, don't need higher precision
     lat = float(f"{coords[0]:.6f}")
@@ -71,10 +83,10 @@ def add_place(args):
         for i in nearby:
             print(f"[{i['row_id']}] ({haversine(i['long'], i['lat'], lng, lat)}) miles: {i['name']}")
 
-    ins = db.get_cur().execute("INSERT INTO places(date_inserted, name, lat, long) VALUES (?, ?, ?, ?)", [dt, name, lat, lng]).rowcount
-    db.get_cur().execute("SELECT row_id FROM places WHERE name = ? and lat = ? and long = ?", [name, lat, lng])
+    ins = db.get_cur().execute("INSERT INTO places(date_inserted, name, lat, long) VALUES (?, ?, ?, ?)", [dt, args.name, lat, lng]).rowcount
+    db.get_cur().execute("SELECT row_id FROM places WHERE name = ? and lat = ? and long = ?", [args.name, lat, lng])
     res = db.get_cur().fetchone()
-    print(f"Inserted {name} as ID {res['row_id']}")
+    print(f"Inserted {args.name} as ID {res['row_id']}")
     return
 
 
