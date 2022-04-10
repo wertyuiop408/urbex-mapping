@@ -1,10 +1,11 @@
 #webs.py
 #https://flask.palletsprojects.com/en/2.1.x/
 import json
+import sqlite3
 
 from flask import Flask, render_template
 
-from db import db
+
 
 
 app = Flask(__name__, template_folder='')
@@ -17,11 +18,12 @@ def index():
 
 @app.route("/bounds/<ne_lat>/<ne_lng>/<sw_lat>/<sw_lng>")
 def map(ne_lat, ne_lng, sw_lat, sw_lng):
-    db.connect()
-    print(ne_lat, ne_lng, sw_lat, sw_lng)
+    with sqlite3.connect("urbex.db") as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
 
-    db.get_cur().execute("select row_id, name, lat, long from places where lat < ? and lat > ? and long < ? and long > ?", [ne_lat, sw_lat, ne_lng, sw_lng])
-    res = db.get_cur().fetchall()
+        cur.execute("select row_id, name, lat, long from places where lat < ? and lat > ? and long < ? and long > ?", [ne_lat, sw_lat, ne_lng, sw_lng])
+        res = cur.fetchall()
     print(f"found {len(res)} results")
 
     geojson = {
@@ -43,5 +45,5 @@ def map(ne_lat, ne_lng, sw_lat, sw_lng):
         geojson["features"].append(yy)
     json_out = json.dumps(geojson)
 
-    db.conn.close()
+    
     return json_out
