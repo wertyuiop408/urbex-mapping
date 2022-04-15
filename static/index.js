@@ -87,9 +87,14 @@ function load_data() {
 
     map.addSource("places", {
         "type": "geojson",
-        "data": data_url
+        "data": data_url,
+        "buffer": 0,
+        "cluster": true,
+        "clusterMaxZoom": 14,
+        "clusterRadius": 50
     });
 
+    //general marker
     map.addLayer({
         "id": "places",
         "type": "circle",
@@ -100,6 +105,31 @@ function load_data() {
             "circle-stroke-width": 2,
             "circle-stroke-color": "#ffffff"
         },
-        "filter": ["==", "$type", "Point"]
+        "filter": ["!", ["has", "point_count"]]
+    });
+
+    //clustered group
+    map.addLayer({
+        "id": "cluster",
+        "type": "circle",
+        "source": "places",
+        "paint": {
+            "circle-color": "#fc4e2a",
+            "circle-radius": 20
+        },
+        "filter": ["has", "point_count"]
+    });
+
+    //clustered group count
+    map.addLayer({
+        "id": "cluster-count",
+        "type": "symbol",
+        "source": "places",
+        "layout": {
+            "text-field": "{point_count_abbreviated}",
+            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+            "text-size": 12
+        },
+        "filter": ["has", "point_count"]
     });
 }
