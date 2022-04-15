@@ -19,24 +19,10 @@ for (const input of inputs) {
         map.setStyle("mapbox://styles/mapbox/" + layerId);
     };
 }
-map.on("style.load", () => {
-    addDataLayer()
-    loadstuff()
-});
+map.on("style.load", load_data);
 
-loadstuff = function() {
-    //https://docs.mapbox.com/mapbox-gl-js/api/sources/#geojsonsource#setdata
-    let gb = map.getBounds()
-    data_url = `http://localhost:5000/bounds/${gb._ne.lat}/${gb._ne.lng}/${gb._sw.lat}/${gb._sw.lng}`
 
-    if (window.location.host == "wertyuiop408.github.io") {
-        data_url = "./data.json"
-    }
-
-    xx = map.getSource("source_id")
-    xx.setData(data_url);
-};
-map.on("click", "points", (e) => {
+map.on("click", "places", (e) => {
     map.flyTo({
         center: e.features[0].geometry.coordinates
     });
@@ -50,7 +36,7 @@ const popup = new mapboxgl.Popup({
 });
 
 // Change the cursor to a pointer when the it enters a feature in the "circle" layer.
-map.on("mouseenter", "points", (e) => {
+map.on("mouseenter", "places", (e) => {
     map.getCanvas().style.cursor = "pointer";
 
     // Copy coordinates array.
@@ -75,30 +61,37 @@ map.on("mouseenter", "points", (e) => {
 });
 
 // Change it back to a pointer when it leaves.
-map.on("mouseleave", "points", () => {
+map.on("mouseleave", "places", () => {
     map.getCanvas().style.cursor = "";
     popup.remove();
 });
 
-map.on("load", () => {
-    map.resize();
-    addDataLayer();
-    loadstuff();
-
-});
+map.on("load", load_data);
 if (window.location.host != "wertyuiop408.github.io") {
-    map.on("moveend", loadstuff)
+    map.on("moveend", load_data)
 }
 
-function addDataLayer() {
-    map.addSource("source_id", {
+function load_data() {
+    const source = map.getSource("places")
+    const bounds = map.getBounds()
+    let data_url = `http://localhost:5000/bounds/${bounds._ne.lat}/${bounds._ne.lng}/${bounds._sw.lat}/${bounds._sw.lng}`
+    if (window.location.host == "wertyuiop408.github.io") {
+        data_url = "./data.json"
+    }
+    if (source) {
+        source.setData(data_url)
+        return
+    }
+
+    map.addSource("places", {
         "type": "geojson",
-        "data": {}
+        "data": data_url
     });
+
     map.addLayer({
-        "id": "points",
+        "id": "places",
         "type": "circle",
-        "source": "source_id",
+        "source": "places",
         "paint": {
             "circle-color": "#4264fb",
             "circle-radius": 8,
