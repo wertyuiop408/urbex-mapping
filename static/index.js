@@ -1,10 +1,21 @@
+function def_vals() {
+    //default values
+    const params = (new URL(document.location)).searchParams;
+    const param = params.get('l');
+    const loc = (param)?param.split(','):[]
+    const def = {};
+    [def.lat=51.740615, def.lng=-2.224585, def.zoom=13] = loc
+    return def
+}
+defaults = def_vals()
+
 //public key
 mapboxgl.accessToken = "pk.eyJ1Ijoid2VydHl1aW9wNDA4IiwiYSI6ImNreW1yd2NwcjNpbnAyb3A4dzVoYThlczcifQ.Z7Ysk6cBE7VmZArynxX9Kw";
 const map = new mapboxgl.Map({
     container: "map", // container ID
     style: "mapbox://styles/mapbox/streets-v11", // style URL
-    center: [-2.224585, 51.740615], // starting position [lng, lat]
-    zoom: 13, // starting zoom
+    center: [defaults.lng, defaults.lat], // starting position [lng, lat]
+    zoom: defaults.zoom, // starting zoom
     pitchWithRotate: false
 });
 
