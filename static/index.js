@@ -72,6 +72,8 @@ if (window.location.host != "wertyuiop408.github.io") {
 }
 
 function load_data() {
+    document.querySelector(".mapboxgl-canvas").focus();
+
     const source = map.getSource("places")
     const bounds = map.getBounds()
     let data_url = `http://localhost:5000/bounds/${bounds._ne.lat}/${bounds._ne.lng}/${bounds._sw.lat}/${bounds._sw.lng}`
