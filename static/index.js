@@ -22,7 +22,7 @@ for (const input of inputs) {
 map.on("style.load", load_data);
 
 
-map.on("click", "places", (e) => {
+map.on("click", ["places", "cluster", "cluster-count"], (e) => {
     map.flyTo({
         center: e.features[0].geometry.coordinates
     });
@@ -36,8 +36,9 @@ const popup = new mapboxgl.Popup({
 });
 
 // Change the cursor to a pointer when the it enters a feature in the "circle" layer.
-map.on("mouseenter", "places", (e) => {
+map.on("mouseenter", ["places", "cluster", "cluster-count"], (e) => {
     map.getCanvas().style.cursor = "pointer";
+    if (e.features[0].layer.id != "places") return
 
     // Copy coordinates array.
     const coordinates = e.features[0].geometry.coordinates.slice();
@@ -61,7 +62,7 @@ map.on("mouseenter", "places", (e) => {
 });
 
 // Change it back to a pointer when it leaves.
-map.on("mouseleave", "places", () => {
+map.on("mouseleave", ["places", "cluster", "cluster-count"], () => {
     map.getCanvas().style.cursor = "";
     popup.remove();
 });
