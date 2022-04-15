@@ -19,6 +19,15 @@ const map = new mapboxgl.Map({
     pitchWithRotate: false
 });
 
+
+map.addControl(
+    new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl: mapboxgl
+    })
+);
+
+
 // Add zoom and rotation controls to the map.
 map.addControl(new mapboxgl.NavigationControl());
 const layerList = document.getElementById("menu");
