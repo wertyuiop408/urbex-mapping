@@ -94,13 +94,11 @@ class searchBar {
     }
 
     _onChange() {
-        //fres twice??
-        let selected = this._typeahead.selected.geometry.coordinates
-        console.log(this._typeahead.selected)
-        console.log(selected)
+        //fires twice -- https://github.com/tristen/suggestions/issues/13 https://github.com/mapbox/mapbox-gl-geocoder/issues/99
         
         this._map.flyTo({
-            center: selected
+            center: this._typeahead.selected.geometry.coordinates,
+            zoom: 13
         });
         
     }
