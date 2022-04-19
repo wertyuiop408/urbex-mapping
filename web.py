@@ -47,3 +47,32 @@ def map(ne_lat, ne_lng, sw_lat, sw_lng):
 
     
     return json_out
+
+@app.route("/search/<query>")
+def search(query):
+    with sqlite3.connect("urbex.db") as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("SELECT row_id, name, lat, long FROM places WHERE LOWER(name) LIKE ?", [f"%{query}%"])
+
+        geojson = {
+            'type': 'FeatureCollection',
+            'features': list()
+        }
+
+        for row in cur.fetchall():
+            yy = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [row["long"], row["lat"]]
+                },
+                "properties": {
+                    "name": row['name'],
+                    "pid": row['row_id']
+                }
+            }
+            geojson["features"].append(yy)
+        json_out = json.dumps(geojson)
+
+    return json_out
