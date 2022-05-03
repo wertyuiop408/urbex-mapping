@@ -6,12 +6,12 @@ from db import db
 def main() -> None:
     db.connect()
     add_addresses_all()
-
     return
 
 def add_tag(place_id, tag):
     db.get_cur().execute("INSERT OR IGNORE INTO tags VALUES (null, ?)", [tag])
     db.get_cur().execute("INSERT OR IGNORE INTO tag_rel SELECT ?, row_id FROM tags WHERE tag is ?", [place_id, tag])
+    db.get_cur().execute("COMMIT")
     return
 
 def add_address_tag(place_id, lat, lng):

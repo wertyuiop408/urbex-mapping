@@ -17,6 +17,7 @@ def main() -> None:
     parser.add_argument('--ref', nargs="*")#--ref "url" "place_id"
     parser.add_argument('--locate', '-l', type=str, nargs="*")
     parser.add_argument('--tag', nargs=2)#--tag "id" "tag"
+    parser.add_argument('--delete', type=int)#--delete <place_id>
     args = parser.parse_args()
 
 
@@ -33,6 +34,14 @@ def main() -> None:
         return
     elif args.tag:
         add_tag(args.tag[0], args.tag[1])
+        return
+    elif args.delete:
+        db.get_cur().execute("DELETE FROM places WHERE row_id = ?", [args.delete])
+        tag_id = db.get_cur().execute("SELECT tag_id FROM tag_rel WHERE place_id = ?", [args.delete]).fetchone()['tag_id']
+        db.get_cur().execute("DELETE FROM tag_rel WHERE place_id = ?", [args.delete])
+        db.get_cur().execute("DELETE FROM tags WHERE row_id = ? AND (SELECT COUNT(*) FROM tag_rel WHERE tag_id = ?) = 0", [tag_id, tag_id])
+        db.get_cur().execute("COMMIT")
+
         return
 
     x = d2l.xxviii_dayslater()
