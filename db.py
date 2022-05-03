@@ -65,6 +65,29 @@ class _db(object):
             )""")
 
 
+        self.cur.execute("""CREATE VIRTUAL TABLE IF NOT EXISTS tags_ft USING fts5(
+            content=tags,
+            content_rowid=row_id,
+            name
+        )""")
+
+
+        self.cur.execute("""CREATE TRIGGER IF NOT EXISTS tags_ai AFTER INSERT ON tags BEGIN
+            INSERT INTO tags_ft(rowid, name) VALUES (new.row_id, new.name);
+            END;""")
+
+
+        self.cur.execute("""CREATE TRIGGER IF NOT EXISTS tags_ad AFTER DELETE ON tags BEGIN
+            INSERT INTO tags_ft(tags_ft, rowid, name) VALUES('delete', old.row_id, old.name);
+            END;""")
+
+
+        self.cur.execute("""CREATE TRIGGER IF NOT EXISTS tags_au AFTER UPDATE ON tags BEGIN
+            INSERT INTO tags_ft(tags_ft, rowid, name) VALUES('delete', old.row_id, old.name);
+            INSERT INTO tags_ft(rowid, name) VALUES (new.row_id, new.name);
+            END;""")
+
+
         #handle our data sources for parsing
         self.cur.execute("""CREATE TABLE IF NOT EXISTS "refs" (
             row_id INTEGER PRIMARY KEY,
