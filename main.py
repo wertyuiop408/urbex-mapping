@@ -75,6 +75,7 @@ def add_place(args):
     lng = float(f"{coords[1]:.6f}")
     dt = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
+    #get a list of places close by (approx within 1-2km in the UK)
     rng = 0.05
     db.get_cur().execute("SELECT row_id, name, long, lat FROM places WHERE long > ? AND long < ? AND lat > ? AND lat < ?", [lng-rng, lng+rng, lat-rng, lat+rng])
     nearby = db.get_cur().fetchall()
@@ -83,9 +84,13 @@ def add_place(args):
         for i in nearby:
             print(f"[{i['row_id']}] ({haversine(i['long'], i['lat'], lng, lat)}) miles: {i['name']}")
 
+    #insert the place into the db and get the place_id for it
     ins = db.get_cur().execute("INSERT INTO places(date_inserted, name, lat, long) VALUES (?, ?, ?, ?)", [dt, args.name, lat, lng]).rowcount
     db.get_cur().execute("SELECT row_id FROM places WHERE name = ? and lat = ? and long = ?", [args.name, lat, lng])
     res = db.get_cur().fetchone()
+
+    #add a tag from the name of the place
+    add_tag(res["row_id"], args.name)
     print(f"Inserted {args.name} as ID {res['row_id']}")
     return
 

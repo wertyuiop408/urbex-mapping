@@ -68,23 +68,23 @@ class _db(object):
         self.cur.execute("""CREATE VIRTUAL TABLE IF NOT EXISTS tags_ft USING fts5(
             content=tags,
             content_rowid=row_id,
-            name
+            tag
         )""")
 
 
         self.cur.execute("""CREATE TRIGGER IF NOT EXISTS tags_ai AFTER INSERT ON tags BEGIN
-            INSERT INTO tags_ft(rowid, name) VALUES (new.row_id, new.name);
+            INSERT INTO tags_ft(rowid, tag) VALUES (new.row_id, new.tag);
             END;""")
 
 
         self.cur.execute("""CREATE TRIGGER IF NOT EXISTS tags_ad AFTER DELETE ON tags BEGIN
-            INSERT INTO tags_ft(tags_ft, rowid, name) VALUES('delete', old.row_id, old.name);
+            INSERT INTO tags_ft(tags_ft, rowid, tag) VALUES('delete', old.row_id, old.tag);
             END;""")
 
 
         self.cur.execute("""CREATE TRIGGER IF NOT EXISTS tags_au AFTER UPDATE ON tags BEGIN
-            INSERT INTO tags_ft(tags_ft, rowid, name) VALUES('delete', old.row_id, old.name);
-            INSERT INTO tags_ft(rowid, name) VALUES (new.row_id, new.name);
+            INSERT INTO tags_ft(tags_ft, rowid, tag) VALUES('delete', old.row_id, old.tag);
+            INSERT INTO tags_ft(rowid, tag) VALUES (new.row_id, new.tag);
             END;""")
 
 
