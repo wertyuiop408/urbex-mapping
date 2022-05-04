@@ -53,7 +53,10 @@ def search(query):
     with sqlite3.connect("urbex.db") as conn:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
-        cur.execute("SELECT row_id, name, lat, long FROM places WHERE LOWER(name) LIKE ?", [f"%{query}%"])
+        cur.execute("""SELECT places.row_id, places.name, places.lat, places.long FROM tags_ft 
+            LEFT JOIN tag_rel ON tag_rel.tag_id=tags_ft.rowid
+            LEFT JOIN places ON places.row_id=tag_rel.place_id
+            WHERE tag match ? LIMIT 10""", [query])
 
         geojson = {
             'type': 'FeatureCollection',
