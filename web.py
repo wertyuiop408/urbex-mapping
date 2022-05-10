@@ -22,7 +22,11 @@ def map(ne_lat, ne_lng, sw_lat, sw_lng):
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
-        cur.execute("select row_id, name, lat, long from places where lat < ? and lat > ? and long < ? and long > ?", [ne_lat, sw_lat, ne_lng, sw_lng])
+        cur.execute("""SELECT row_id, name, lat, long
+            FROM places
+            WHERE lat < ? and lat > ? and long < ? and long > ?
+            AND (places.status NOT IN (1, 4) OR places.status IS NULL)""",
+            [ne_lat, sw_lat, ne_lng, sw_lng])
         res = cur.fetchall()
     print(f"found {len(res)} results")
 
@@ -56,7 +60,7 @@ def search(query):
         cur.execute("""SELECT places.row_id, places.name, places.lat, places.long FROM tags_ft 
             LEFT JOIN tag_rel ON tag_rel.tag_id=tags_ft.rowid
             LEFT JOIN places ON places.row_id=tag_rel.place_id
-            WHERE tag match "raf"
+            WHERE tag match ?
             AND (places.status NOT IN (1, 4) OR places.status IS NULL)
             LIMIT 5""", [query])
 
