@@ -53,10 +53,12 @@ def search(query):
     with sqlite3.connect("urbex.db") as conn:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
-        cur.execute("""SELECT places.row_id, places.name, places.lat, places.long FROM tags_ft 
+        cur.execute("""SELECT places.row_id, places.name, places.lat, places.long, * FROM tags_ft 
             LEFT JOIN tag_rel ON tag_rel.tag_id=tags_ft.rowid
             LEFT JOIN places ON places.row_id=tag_rel.place_id
-            WHERE tag match ? LIMIT 10""", [query])
+            WHERE tag match "raf"
+            AND (places.status NOT IN (1, 4) OR places.status IS NULL)
+            LIMIT 5""", [query])
 
         geojson = {
             'type': 'FeatureCollection',
