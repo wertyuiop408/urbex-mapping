@@ -29,7 +29,11 @@ def main() -> None:
         return
     elif args.locate:
         for place in args.locate:
-            for x in db.get_cur().execute("SELECT row_id, name FROM places WHERE name LIKE ?", [f"%{place.strip()}%"]):
+            for x in db.get_cur().execute("""SELECT places.row_id, places.name FROM tags_ft 
+                LEFT JOIN tag_rel ON tag_rel.tag_id=tags_ft.rowid
+                LEFT JOIN places ON places.row_id=tag_rel.place_id
+                WHERE tag match ?
+                GROUP BY places.row_id""", [f"{place.strip()}"]):
                 print(f"[{x['row_id']}] {x['name']}")
         return
     elif args.tag:
