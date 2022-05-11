@@ -35,6 +35,7 @@ def map(ne_lat, ne_lng, sw_lat, sw_lng):
         'features': list()
     }
     for x in res:
+        tags = get_tags(cur, x["row_id"])
         yy = {
             "type": "Feature",
             "geometry": {
@@ -43,14 +44,14 @@ def map(ne_lat, ne_lng, sw_lat, sw_lng):
             },
             "properties": {
                 "name": x['name'],
-                "pid": x['row_id']
+                "pid": x['row_id'],
+                "loc": tags
             }
         }
         geojson["features"].append(yy)
     json_out = json.dumps(geojson)
-
-    
     return json_out
+
 
 @app.route("/search/<query>")
 def search(query):
@@ -69,7 +70,11 @@ def search(query):
             'features': list()
         }
 
-        for row in cur.fetchall():
+        places = cur.fetchall()
+        for row in places:
+            
+
+            tags = get_tags(cur, row["row_id"])
             yy = {
                 "type": "Feature",
                 "geometry": {
@@ -78,10 +83,27 @@ def search(query):
                 },
                 "properties": {
                     "name": row['name'],
-                    "pid": row['row_id']
+                    "pid": row['row_id'],
+                    "loc": tags
                 }
             }
             geojson["features"].append(yy)
         json_out = json.dumps(geojson)
 
     return json_out
+
+
+def get_tags(cur, place_id):
+    tag_arr = []
+    for tag in cur.execute("""SELECT * from tag_rel 
+        JOIN tags_ft on tag_rel.tag_id=tags_ft.ROWID
+        WHERE place_id = ?
+        AND tags_ft.tag MATCH "city OR county" """, [place_id]):
+
+        tag_split = tag["tag"].split(":")
+        if tag_split[0] == "county":
+            tag_arr.append(tag_split[1])
+        elif tag_split[0] == "city":
+            tag_arr.insert(0, tag_split[1])
+
+    return  ", ".join(tag_arr)

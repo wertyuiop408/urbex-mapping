@@ -27,7 +27,7 @@ class searchBar {
 
         this._typeahead = new Suggestions(this._inputEl, [])
         this._typeahead.render = function(item) {
-            return '<div class="mapboxgl-ctrl-geocoder--suggestion"><div class="mapboxgl-ctrl-geocoder--suggestion-title">' + item.properties.name + '</div><div class="mapboxgl-ctrl-geocoder--suggestion-address">' + item.properties.name + '</div></div>';
+            return '<div class="mapboxgl-ctrl-geocoder--suggestion"><div class="mapboxgl-ctrl-geocoder--suggestion-title">' + item.properties.name + '</div><div class="mapboxgl-ctrl-geocoder--suggestion-address">' + item.properties.loc + '</div></div>';
         }
         this._typeahead.getItemValue = function(item) {
           return item.properties.name
