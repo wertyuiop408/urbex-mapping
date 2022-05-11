@@ -63,6 +63,7 @@ def search(query):
             LEFT JOIN places ON places.row_id=tag_rel.place_id
             WHERE tag match ?
             AND (places.status NOT IN (1, 4) OR places.status IS NULL)
+            GROUP BY places.row_id
             LIMIT 5""", [query])
 
         geojson = {
