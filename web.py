@@ -3,9 +3,7 @@
 import json
 import sqlite3
 
-from flask import Flask, render_template
-
-
+from flask import Flask, render_template, Response
 
 
 app = Flask(__name__, template_folder='')
@@ -50,7 +48,7 @@ def map(ne_lat, ne_lng, sw_lat, sw_lng):
         }
         geojson["features"].append(yy)
     json_out = json.dumps(geojson)
-    return json_out
+    return Response(json_out, mimetype="application/json")
 
 
 @app.route("/search/<query>")
@@ -91,7 +89,7 @@ def search(query):
             geojson["features"].append(yy)
         json_out = json.dumps(geojson)
 
-    return json_out
+    return Response(json_out, mimetype="application/json")
 
 
 def get_tags(cur, place_id):
