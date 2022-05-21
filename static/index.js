@@ -4,54 +4,65 @@ class searchBar {
     onAdd(map) {
         this._map = map;
 
+        //create a wrapper element, autocomplete.js looks for the input elements parent.
         const el = document.createElement('div');
-        el.className = 'mapboxgl-ctrl-geocoder mapboxgl-ctrl';
+        el.className = "mapboxgl-ctrl";
 
-    
-        const searchIcon = this.createIcon('search', '<path d="M7.4 2.5c-2.7 0-4.9 2.2-4.9 4.9s2.2 4.9 4.9 4.9c1 0 1.8-.2 2.5-.8l3.7 3.7c.2.2.4.3.8.3.7 0 1.1-.4 1.1-1.1 0-.3-.1-.5-.3-.8L11.4 10c.4-.8.8-1.6.8-2.5.1-2.8-2.1-5-4.8-5zm0 1.6c1.8 0 3.2 1.4 3.2 3.2s-1.4 3.2-3.2 3.2-3.3-1.3-3.3-3.1 1.4-3.3 3.3-3.3z"/>')
-        el.appendChild(searchIcon)
-
-
-        this._inputEl = document.createElement('input');
-        this._inputEl.type = 'text';
-        this._inputEl.className = 'mapboxgl-ctrl-geocoder--input';
-        this._inputEl.placeholder = "Search";
-        this._inputEl.setAttribute('aria-label', "Search");
-        
-        this._onKeyDown = this._onKeyDown.bind(this);
-        this._inputEl.addEventListener('keydown', this.debounce(this._onKeyDown, 200));
-
-        this._onChange = this._onChange.bind(this);
-        this._inputEl.addEventListener('change', this._onChange);
-        el.appendChild(this._inputEl);
-
-        this._typeahead = new Suggestions(this._inputEl, [])
-        this._typeahead.render = function(item) {
-            return '<div class="mapboxgl-ctrl-geocoder--suggestion"><div class="mapboxgl-ctrl-geocoder--suggestion-title">' + item.properties.name + '</div><div class="mapboxgl-ctrl-geocoder--suggestion-address">' + item.properties.loc + '</div></div>';
-        }
-        this._typeahead.getItemValue = function(item) {
-          return item.properties.name
-        }
-
-        const actions = document.createElement('div');
-        actions.classList.add('mapboxgl-ctrl-geocoder--pin-right');
-
-        this._clearEl = document.createElement('button');
-        this._clearEl.setAttribute('aria-label', 'Clear');
-        this._clearEl.addEventListener('click', () => {this._inputEl.value = '';this._clearEl.style.display = 'none'});//does this work?
-        this._clearEl.className = 'mapboxgl-ctrl-geocoder--button';
-
-        const buttonIcon = this.createIcon('close', '<path d="M3.8 2.5c-.6 0-1.3.7-1.3 1.3 0 .3.2.7.5.8L7.2 9 3 13.2c-.3.3-.5.7-.5 1 0 .6.7 1.3 1.3 1.3.3 0 .7-.2 1-.5L9 10.8l4.2 4.2c.2.3.7.3 1 .3.6 0 1.3-.7 1.3-1.3 0-.3-.2-.7-.3-1l-4.4-4L15 4.6c.3-.2.5-.5.5-.8 0-.7-.7-1.3-1.3-1.3-.3 0-.7.2-1 .3L9 7.1 4.8 2.8c-.3-.1-.7-.3-1-.3z"/>')
-        this._clearEl.appendChild(buttonIcon);
-        actions.appendChild(this._clearEl);
-
-        this._loadingEl = this.createIcon('loading', '<path fill="#333" d="M4.4 4.4l.8.8c2.1-2.1 5.5-2.1 7.6 0l.8-.8c-2.5-2.5-6.7-2.5-9.2 0z"/><path opacity=".1" d="M12.8 12.9c-2.1 2.1-5.5 2.1-7.6 0-2.1-2.1-2.1-5.5 0-7.7l-.8-.8c-2.5 2.5-2.5 6.7 0 9.2s6.6 2.5 9.2 0 2.5-6.6 0-9.2l-.8.8c2.2 2.1 2.2 5.6 0 7.7z"/>');
-        actions.appendChild(this._loadingEl);
-        
-        el.appendChild(actions);
+        const inp = document.createElement("input");
+        el.appendChild(inp);
 
 
-        
+        const autoCompleteJS = new autoComplete({
+            selector: ()=>inp,
+            placeHolder: "Search",
+            data: {
+                src: async (query) => {
+                    try {
+                        //fetch the data from the server
+                        const source = await fetch(`/search/${query}`);
+                        const data = await source.json();
+                        return data.features;
+                    } catch (error) {
+                        return error;
+                    }
+                }
+            },
+            searchEngine: (q, r) => {
+                const query = q.toLowerCase();
+                const prop_name = r.properties.name.toLowerCase();
+                const prop_loc = r.properties.loc.toLowerCase();
+
+                if (prop_name.includes(query)) {
+                    return r;
+                }
+                if (prop_loc.includes(query)) {
+                    return r;
+                }
+                return false;
+            },
+            resultItem: {
+                element: (item, data) => {
+                
+                    item.innerHTML = `<div>${data.value.properties.name}</div>`;
+                },
+            },
+            debounce: 300
+        });
+
+        //when user selects a result
+        autoCompleteJS.input.addEventListener("selection", (event) => {
+            const feedback = event.detail;
+            autoCompleteJS.input.blur();
+            const selection = feedback.selection.value;
+            autoCompleteJS.input.value = selection.properties.name;
+
+            //go to it
+            this._map.flyTo({
+                center: selection.geometry.coordinates,
+                zoom: 13
+            });
+        });
+
         this._container = el;
         return this._container;
     }
@@ -63,90 +74,8 @@ class searchBar {
         this._map = undefined;
         return this;
     }
-    createIcon(name, path) {
-        var icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        icon.setAttribute('class', `mapboxgl-ctrl-geocoder--icon mapboxgl-ctrl-geocoder--icon-${name}`);
-        icon.setAttribute('viewBox', '0 0 18 18');
-        icon.setAttribute('xml:space','preserve');
-        icon.setAttribute('width', 18);
-        icon.setAttribute('height', 18);
-        icon.innerHTML = path;
-        return icon;
-    }
-    _onKeyDown() {
-
-        this._loadingEl.style.display = 'block';
-        this._typeahead.clear();
-        this._typeahead.selected = true;
-        
-        if (this._inputEl.value.length < 3) return
-
-        self = this;
-        const res = fetch(`http://localhost:5000/search/${this._inputEl.value}`)
-        .then(response => response.json())
-        .then(data => {
-            self._loadingEl.style.display = 'none';
-            self._clearEl.style.display = 'block';
-            self._typeahead.update(data.features);
-
-        });
-        
-    }
-
-    _onChange() {
-        //fires twice -- https://github.com/tristen/suggestions/issues/13 https://github.com/mapbox/mapbox-gl-geocoder/issues/99
-        
-        this._map.flyTo({
-            center: this._typeahead.selected.geometry.coordinates,
-            zoom: 13
-        });
-        
-    }
-
-
-    debounce(fn, wait = 0, { maxWait = Infinity } = {}) {
-        //https://dev.to/miketalbot/14-functions-so-you-can-dump-lodash-and-reduce-your-bundle-size-3gg9
-        let timer = 0
-        let startTime = 0
-        let running = false
-        let pendingParams
-        let result = function (...params) {
-            pendingParams = params
-            if (running && Date.now() - startTime > maxWait) {
-                execute()
-            } else {
-                if (!running) {
-                    startTime = Date.now()
-                }
-                running = true
-            }
-
-            clearTimeout(timer)
-            timer = setTimeout(execute, Math.min(maxWait - startTime, wait))
-
-            function execute() {
-                running = false
-                fn(...params)
-            }
-        }
-        result.flush = function () {
-            if (running) {
-                running = false
-                clearTimeout(timer)
-                fn(...pendingParams)
-            }
-        }
-        result.cancel = function () {
-            running = false
-            clearTimeout(timer)
-        }
-        return result
-    }
-
+    
 }
-
-
-
 
 
 function def_vals() {
