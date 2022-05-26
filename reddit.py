@@ -9,7 +9,17 @@ import config #creds
 
 class red:
     subs = [
-        "abandoned"
+        "abandoned",
+        "abandonedporn",
+        "urbanexploration",
+        "Urbex",
+        "AbandonedAsylums",
+        "Asylums",
+        "AbandonedNJ",
+        "Deserted",
+        "reclaimedbynature",
+        "UET",
+        "OntarioAbandoned"
     ]
 
     def __init__(self):
@@ -53,6 +63,8 @@ class red:
             print("Error")
             print(err)
             return
+        except KeyboardInterrupt:
+            pass
         
 
     def crawl_sub_psaw(self, sub):
