@@ -1,3 +1,5 @@
 *.db
+*.bk
 __pycache__/
 env/
+config.py
