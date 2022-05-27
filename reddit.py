@@ -3,9 +3,9 @@ from urllib.parse import urlparse, urljoin
 
 import praw
 from psaw import PushshiftAPI
+import hvac
 
 from db import db
-import config #creds
 
 class red:
     #list of subreddits to crawl
@@ -24,15 +24,16 @@ class red:
     ]
 
     def __init__(self) -> None:
+        vault = hvac.Client(url='http://localhost:8200')
+        creds = vault.secrets.kv.read_secret(path="reddit", mount_point="kv")["data"]["data"]
         self.limit = 1000
         self.reddit = praw.Reddit(
-            client_id=config.client_id,
-            client_secret=config.client_secret,
-            password=config.password,
-            user_agent=config.user_agent,
-            username=config.username,
+            client_id=creds["client_id"],
+            client_secret=creds["client_secret"],
+            password=creds["password"],
+            user_agent="Urbex Mapping",
+            username=creds["username"],
         )
-
         return
 
 
@@ -168,5 +169,4 @@ class red:
 if __name__ == "__main__":
     db.connect()
     x = red()
-    exit()
     x.crawl()
