@@ -23,7 +23,7 @@ class red:
         "OntarioAbandoned"
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.limit = 1000
         self.reddit = praw.Reddit(
             client_id=config.client_id,
@@ -44,7 +44,10 @@ class red:
         self.stream_subs()
         
 
-    def stream_subs(self):
+    def stream_subs(self) -> None:
+        """
+        Creates a stream of new thread submissiosn to the subreddits in self.subs and adds the threads link and title to the database.
+        """
         sql_stmnt = """INSERT OR IGNORE INTO refs(url, title, date_inserted, date_post) 
             SELECT ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM refs WHERE url = ?1)"""
 
@@ -68,7 +71,12 @@ class red:
             pass
         
 
-    def crawl_sub_psaw(self, sub):
+    def crawl_sub_psaw(self, sub: str) -> None:
+        """
+        Crawls the subreddit using pushshift.io (PSAW) and adds the threads link and title to the database.
+
+        sub - Subreddit name
+        """
         api = PushshiftAPI()
         gen = api.search_submissions(subreddit=sub)
         inserted_count = 0
@@ -96,9 +104,12 @@ class red:
         return
 
 
-    def crawl_sub(self, sub):
-        if sub == None:
-            return
+    def crawl_sub(self, sub: str) -> None:
+        """
+        Crawls the subreddit using the reddit API (PRAW) and adds the threads link and title to the database.
+    
+        sub - Subreddit name
+        """
 
         sql_stmnt = """INSERT OR IGNORE INTO refs(url, title, date_inserted, date_post) 
             SELECT ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM refs WHERE url = ?1)"""
@@ -140,7 +151,15 @@ class red:
         return
 
 
-    def parse_results(self, permalink, title, crawl_date, created_utc):
+    def parse_results(self, permalink: str, title: str, crawl_date: str, created_utc: int) -> list[str, str, str, str]:
+        """
+        Returns a list of the parameters after formatting them, permalink URL to an absolute URL, and create_utc to an ISO 8601 format
+
+            permalink - relative thread url
+            title - title of the thread
+            crawl_date - ISO 8601
+            created_utc - unix timestamp
+        """
         thread_url = f"https://reddit.com{permalink}".lower()
         iso_date = datetime.fromtimestamp(created_utc, timezone.utc).isoformat(timespec="seconds")
         return [thread_url, title, crawl_date, iso_date]
@@ -149,4 +168,5 @@ class red:
 if __name__ == "__main__":
     db.connect()
     x = red()
+    exit()
     x.crawl()
