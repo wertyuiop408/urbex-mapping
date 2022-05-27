@@ -8,6 +8,7 @@ from db import db
 import config #creds
 
 class red:
+    #list of subreddits to crawl
     subs = [
         "abandoned",
         "abandonedporn",
@@ -81,19 +82,17 @@ class red:
 
 
             if len(cache) >= 1000:
-                print(f"bulk insert: {len(cache)}")
                 db.get_cur().execute("BEGIN")
                 inserted_count += db.get_cur().executemany(sql_stmnt, cache).rowcount
                 db.get_cur().execute("COMMIT")
                 cache.clear()
 
         if len(cache) != 0:
-            print(f"Final insert: {len(cache)}")
             db.get_cur().execute("BEGIN")
             inserted_count += db.get_cur().executemany(sql_stmnt, cache).rowcount
             db.get_cur().execute("COMMIT")
         
-        print(f"Inserted {inserted_count} entries")
+        print(f"Crawled '{sub}' subreddit: {inserted_count} inserted")
         return
 
 
