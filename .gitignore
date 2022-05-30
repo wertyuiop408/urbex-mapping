@@ -2,4 +2,4 @@
 *.bk
 __pycache__/
 env/
-config.py
+*.cfg
