@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from urllib.parse import urlparse, urljoin
+import configparser
 
 import praw
 from psaw import PushshiftAPI
@@ -24,6 +25,11 @@ class red:
     ]
 
     def __init__(self) -> None:
+        self.config = configparser.ConfigParser()
+        self.config.read("config.cfg")
+        if not self.config.has_section("CRAWLERS"):
+            self.config.add_section("CRAWLERS")
+
         vault = hvac.Client(url='http://localhost:8200')
         creds = vault.secrets.kv.read_secret(path="reddit", mount_point="kv")["data"]["data"]
         self.limit = 1000
@@ -37,10 +43,9 @@ class red:
         return
 
 
-    def crawl(self, first_run=False):
-        if first_run:
-            for sub in self.subs:
-                self.crawl_sub_psaw(sub)
+    def crawl(self):
+        for sub in self.subs:
+            self.crawl_sub_psaw(sub)
 
         self.stream_subs()
         
@@ -79,7 +84,13 @@ class red:
         sub - Subreddit name
         """
         api = PushshiftAPI()
-        gen = api.search_submissions(subreddit=sub)
+
+        ss_args = {"subreddit": sub}
+        if f"reddit_{sub}" in self.config["CRAWLERS"]:
+            ss_args.update({"after": self.config["CRAWLERS"][f"reddit_{sub}"]})
+
+
+        gen = api.search_submissions(**ss_args)
         inserted_count = 0
         sql_stmnt = """INSERT OR IGNORE INTO refs(url, title, date_inserted, date_post) 
             SELECT ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM refs WHERE url = ?1)"""
@@ -101,7 +112,9 @@ class red:
             inserted_count += db.get_cur().executemany(sql_stmnt, cache).rowcount
             db.get_cur().execute("COMMIT")
         
+        self.write_config(sub)
         print(f"Crawled '{sub}' subreddit: {inserted_count} inserted")
+
         return
 
 
@@ -164,6 +177,15 @@ class red:
         thread_url = f"https://reddit.com{permalink}".lower()
         iso_date = datetime.fromtimestamp(created_utc, timezone.utc).isoformat(timespec="seconds")
         return [thread_url, title, crawl_date, iso_date]
+
+
+    def write_config(self, sub) -> None:
+        write_time = int(datetime.now().timestamp())
+        self.config.set("CRAWLERS", f"reddit_{sub}", str(write_time))
+
+        with open('config.cfg', 'w') as configfile:
+            self.config.write(configfile)
+        return
 
 
 if __name__ == "__main__":
