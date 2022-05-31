@@ -6,7 +6,7 @@ from math import radians, cos, sin, asin, sqrt
 
 from db import db
 from tags import add_tag
-import xxviii_dayslater as d2l
+import xenforo as xf
 
 
 def main() -> None:
@@ -48,8 +48,60 @@ def main() -> None:
 
         return
 
-    x = d2l.xxviii_dayslater()
-    x.crawl()
+    xxviii_dayslater = xf.xenforo("https://www.28dayslater.co.uk/forum/", [
+        "noteworthy-reports.115/",
+        "asylums-and-hospitals.4/",
+        "high-stuff.35/",
+        "industrial-sites.6/",
+        "leisure-sites.7/",
+        "residential-sites.92/",
+        "military-sites.5/",
+        "mines-and-quarries.95/",
+        "roc-posts.50/",
+        "restored-roc-posts.82/",
+        "theatres-and-cinemas.78/",
+        "uk-draining-forum.94/",
+        "underground-sites.29/",
+        "european-and-international-sites.46/",
+        "other-sites.8/",
+        "leads-rumours-and-news.57/",
+        "photo-threads.158/",
+        "diehardlove.122/",
+        "downfallen.121/",
+        "solomon.123/"
+    ])
+    xxviii_dayslater.crawl()
+
+
+    oblivionstate = xf.xenforo("https://www.oblivionstate.com/community/forums/", [
+        "industrial-locations.11/",
+        "manors-mansions-residential.26/",
+        "medical-institutions.12/",
+        "public-buildings-education-leisure.13/",
+        "underground-explores.45/",
+        "military-sites.10/",
+        "high-places.54/",
+        "religious-sites.27/",
+        "anything-else.16/",
+        "short-reports.31/",
+        "photo-only-threads.33/"
+    ])
+    oblivionstate.crawl()
+
+
+    derelictplaces = xf.xenforo("https://www.derelictplaces.co.uk/forums/", [
+        "general-exploration-forum.82/"
+        "industrial-sites.64/",
+        "military-sites.63/",
+        "hospitals-asylums.62/",
+        "misc-sites.70/",
+        "residential-sites.68/",
+        "rural-sites.61/",
+        "overseas-sites.143/",
+        "leisure-sites.66/",
+        "underground-sites.139/"
+    ])
+    derelictplaces.crawl()
     
     return
 

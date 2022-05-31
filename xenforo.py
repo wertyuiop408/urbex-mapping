@@ -9,27 +9,17 @@ from bs4 import BeautifulSoup
 from db import db
 
 
-class oblivionstate:
-    base_url = "https://www.oblivionstate.com/community/forums/"
+class xenforo:
+    
     suffix_url = "?order=post_date&direction=desc"
-    sections = [
-        "industrial-locations.11/",
-        "manors-mansions-residential.26/",
-        "medical-institutions.12/",
-        "public-buildings-education-leisure.13/",
-        "underground-explores.45/",
-        "military-sites.10/",
-        "high-places.54/",
-        "religious-sites.27/",
-        "anything-else.16/",
-        "short-reports.31/",
-        "photo-only-threads.33/"
-    ]
+    
 
-
-    def __init__(self) -> None:
+    def __init__(self, url: str, sections: list) -> None:
         #use this var to force looking through sections we already have crawled
         self.force = False
+
+        self.base_url = url
+        self.sections = sections
         return
 
 
@@ -121,6 +111,6 @@ class oblivionstate:
 
 if __name__ == "__main__":
     db.connect()
-    os = oblivionstate()
+    os = xenforo()
     os.crawl()
     
