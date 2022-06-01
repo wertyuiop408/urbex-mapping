@@ -90,7 +90,7 @@ def main() -> None:
 
 
     derelictplaces = xf.xenforo("https://www.derelictplaces.co.uk/forums/", [
-        "general-exploration-forum.82/"
+        "general-exploration-forum.82/",
         "industrial-sites.64/",
         "military-sites.63/",
         "hospitals-asylums.62/",
