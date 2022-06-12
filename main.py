@@ -112,7 +112,7 @@ def add_ref(args):
     parser.add_argument("pid", type=int, nargs="*")
     args = parser.parse_args(args)
 
-    x = d2l.xxviii_dayslater()
+    x = xf.xenforo("https://www.28dayslater.co.uk/forum/", [])
     thread = x.get_thread(args.url)
     title = thread[0]
     thread_date = thread[2]

@@ -104,8 +104,14 @@ class xenforo:
 
 
 
-    def get_thread(self, url: str) -> None:
-        return
+    def get_thread(self, url: str) -> list:
+        page = requests.get(url)
+        soup = BeautifulSoup(page.content, "html.parser")
+        name = soup.select_one(".p-title-value").text
+        thread_date = soup.select_one(".u-concealed > time").get("datetime")
+
+        tags = [i.text for i in soup.select(".tagItem")]
+        return [name, tags, thread_date]
 
 
 
