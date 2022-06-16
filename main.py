@@ -117,12 +117,12 @@ def add_ref(args):
     db.get_cur().execute("SELECT url, title, date_inserted, date_post FROM refs where url = ?", [args.url])
     cur = db.get_cur().fetchone()
     if cur:
-        db.get_cut().execute("BEGIN")
+        db.get_cur().execute("BEGIN")
         for pid in args.pid:
             db.get_cur().execute("""INSERT OR IGNORE INTO refs(url, place_id, title, date_inserted, date_post) 
                 VALUES (?, ?, ?, ?, ?)""",
                 [args.url, int(pid), cur["title"], cur["date_inserted"], cur["date_post"]])
-        db.get_cut().execute("COMMIT")
+        db.get_cur().execute("COMMIT")
         return
 
     #need to redo the code below, now there are more crawlers, it's just wrong.
