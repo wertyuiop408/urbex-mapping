@@ -112,6 +112,20 @@ def add_ref(args):
     parser.add_argument("pid", type=int, nargs="*")
     args = parser.parse_args(args)
 
+
+    #check if it exists in the db already, if so, just clone it.
+    db.get_cur().execute("SELECT url, title, date_inserted, date_post FROM refs where url = ?", [args.url])
+    cur = db.get_cur().fetchone()
+    if cur:
+        db.get_cut().execute("BEGIN")
+        for pid in args.pid:
+            db.get_cur().execute("""INSERT OR IGNORE INTO refs(url, place_id, title, date_inserted, date_post) 
+                VALUES (?, ?, ?, ?, ?)""",
+                [args.url, int(pid), cur["title"], cur["date_inserted"], cur["date_post"]])
+        db.get_cut().execute("COMMIT")
+        return
+
+    #need to redo the code below, now there are more crawlers, it's just wrong.
     x = xf.xenforo("https://www.28dayslater.co.uk/forum/", [])
     thread = x.get_thread(args.url)
     title = thread[0]
