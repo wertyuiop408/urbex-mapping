@@ -1,3 +1,4 @@
+import configparser
 import json
 import math
 from datetime import datetime, timezone
@@ -21,23 +22,25 @@ class whateversleft:
 
         """
         self.base_url = "https://www.whateversleft.co.uk"
+        self.config = configparser.ConfigParser()
+        self.config.read("config.cfg")
+        if not self.config.has_section("CRAWLERS"):
+            self.config.add_section("CRAWLERS")
         return
 
     def crawl(self):
-
         fp = self.pagination()
-        print(fp)
         for page in range(1, math.ceil(fp[1]/100)+1):
             self.pagination(page, 100)
-
+        self.write_config()
         return
 
+
     def pagination(self, page=1, per_page=10):
-        #for each page
-        #get, and insert to db (if possible)
-        #is there more?
-        print(page)
         _url = f"{self.base_url}/wp-json/wp/v2/posts?per_page={per_page}&page={page}"
+        if f"whateversleft" in self.config["CRAWLERS"]:
+            _url += f"&after={self.config['CRAWLERS']['whateversleft']}"
+
         fp = requests.get(_url)
         
         total = int(fp.headers["X-WP-Total"])
@@ -74,6 +77,15 @@ class whateversleft:
 
         page = requests.get(url)
         soup = BeautifulSoup(sitemap.content, "html.parser")
+
+
+    def write_config(self) -> None:
+        write_time = datetime.now().isoformat(timespec="seconds")
+        self.config.set("CRAWLERS", f"whateversleft", str(write_time))
+
+        with open('config.cfg', 'w') as configfile:
+            self.config.write(configfile)
+        return
 
       
 if __name__ == "__main__":
