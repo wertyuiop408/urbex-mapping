@@ -1,8 +1,9 @@
+import argparse
 import configparser
 import json
 import math
 from datetime import datetime, timezone
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, urljoin
 
 import requests
 from bs4 import BeautifulSoup
@@ -11,7 +12,7 @@ from db import db
 
 
 class wordpress:
-    def __init__(self, url):
+    def __init__(self, url=""):
         """
         https://developer.wordpress.org/rest-api/reference/posts/#list-posts
 
@@ -21,12 +22,16 @@ class wordpress:
 
 
         """
+        if url == "":
+            return
+
         self.base_url = url
         self.config = configparser.ConfigParser()
         self.config.read("config.cfg")
         if not self.config.has_section("CRAWLERS"):
             self.config.add_section("CRAWLERS")
         return
+
 
     def crawl(self):
         fp = self.pagination()
@@ -37,7 +42,7 @@ class wordpress:
 
 
     def pagination(self, page=1, per_page=10):
-        _url = f"{self.base_url}/wp-json/wp/v2/posts?per_page={per_page}&page={page}"
+        _url = urljoin(self.base_url, f"/wp-json/wp/v2/posts?per_page={per_page}&page={page}")
 
         hostname = f"wp_{urlsplit(self.base_url).hostname}"
         if hostname in self.config["CRAWLERS"]:
@@ -107,6 +112,10 @@ class wordpress:
 
       
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(allow_abbrev=False)
+    parser.add_argument('site')
+    args = parser.parse_args()
+
     db.connect()
-    x = wordpress("https://www.whateversleft.co.uk")
+    x = wordpress(args.site)
     x.crawl()
