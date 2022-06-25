@@ -2,6 +2,7 @@ import configparser
 import json
 import math
 from datetime import datetime, timezone
+from urllib.parse import urlsplit
 
 import requests
 from bs4 import BeautifulSoup
@@ -9,10 +10,9 @@ from bs4 import BeautifulSoup
 from db import db
 
 
-class whateversleft:
-    def __init__(self):
+class wordpress:
+    def __init__(self, url):
         """
-        this site seems to be based off of word-press
         https://developer.wordpress.org/rest-api/reference/posts/#list-posts
 
         The WP Rest API sends the total count(found_posts) property from WP_Query. in a header called X-WP-Total.
@@ -21,7 +21,7 @@ class whateversleft:
 
 
         """
-        self.base_url = "https://www.whateversleft.co.uk"
+        self.base_url = url
         self.config = configparser.ConfigParser()
         self.config.read("config.cfg")
         if not self.config.has_section("CRAWLERS"):
@@ -38,8 +38,10 @@ class whateversleft:
 
     def pagination(self, page=1, per_page=10):
         _url = f"{self.base_url}/wp-json/wp/v2/posts?per_page={per_page}&page={page}"
-        if f"whateversleft" in self.config["CRAWLERS"]:
-            _url += f"&after={self.config['CRAWLERS']['whateversleft']}"
+
+        hostname = f"wp_{urlsplit(self.base_url).hostname}"
+        if hostname in self.config["CRAWLERS"]:
+            _url += f"&after={self.config['CRAWLERS'][hostname]}"
 
         fp = requests.get(_url)
         
@@ -96,7 +98,8 @@ class whateversleft:
 
     def write_config(self) -> None:
         write_time = datetime.now().isoformat(timespec="seconds")
-        self.config.set("CRAWLERS", f"whateversleft", str(write_time))
+        hostname = f"wp_{urlsplit(self.base_url).hostname}"
+        self.config.set("CRAWLERS", hostname, str(write_time))
 
         with open('config.cfg', 'w') as configfile:
             self.config.write(configfile)
@@ -105,5 +108,5 @@ class whateversleft:
       
 if __name__ == "__main__":
     db.connect()
-    x = whateversleft()
+    x = wordpress("https://www.whateversleft.co.uk")
     x.crawl()
