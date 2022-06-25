@@ -68,15 +68,30 @@ class whateversleft:
         return (count, total)
 
 
-    def get_page(self, url):
+    def insert(self, url):
+        """
+        Insert a single reference URL
+        """
         db.get_cur().execute("SELECT row_id FROM refs WHERE url = ?", [url])
         res = db.get_cur().fetchone()
         
         if res is not None:
+            print("already exists")
             return
 
         page = requests.get(url)
-        soup = BeautifulSoup(sitemap.content, "html.parser")
+        soup = BeautifulSoup(page.content, "html.parser")
+        title = soup.find("meta", property="og:title")["content"]
+        _url = soup.find("meta", property="og:url")["content"]
+        pt = soup.find("meta", property="article:published_time")["content"]
+
+        sql_stmnt = """INSERT OR IGNORE INTO refs(url, title, date_inserted, date_post) 
+            SELECT ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM refs WHERE url = ?1)"""
+
+        crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        db.get_cur().execute(sql_stmnt, [_url, title, crawl_date, pt])
+
+        return
 
 
     def write_config(self) -> None:
@@ -92,4 +107,3 @@ if __name__ == "__main__":
     db.connect()
     x = whateversleft()
     x.crawl()
-    #x.get_page("https://www.whateversleft.co.uk/underground/roc-post/")
