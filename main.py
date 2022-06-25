@@ -7,6 +7,7 @@ from math import radians, cos, sin, asin, sqrt
 from db import db
 from tags import add_tag
 import xenforo as xf
+import wordpress as wp
 
 
 def main() -> None:
@@ -102,6 +103,11 @@ def main() -> None:
         "underground-sites.139/"
     ])
     derelictplaces.crawl()
+
+
+    wp.wordpress("https://www.theurbanexplorer.co.uk").crawl()
+    wp.wordpress("https://www.girlgeekupnorth.co.uk").crawl()
+    wp.wordpress("https://www.whateversleft.co.uk").crawl()
     
     return
 
