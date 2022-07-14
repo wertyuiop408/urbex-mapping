@@ -42,7 +42,7 @@ class wordpress:
 
 
     def pagination(self, page=1, per_page=10):
-        _url = urljoin(self.base_url, f"/wp-json/wp/v2/posts?per_page={per_page}&page={page}")
+        _url = urljoin(self.base_url, f"wp-json/wp/v2/posts?per_page={per_page}&page={page}")
 
         hostname = f"wp_{urlsplit(self.base_url).hostname}"
         if hostname in self.config["CRAWLERS"]:
