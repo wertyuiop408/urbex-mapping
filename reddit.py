@@ -1,10 +1,12 @@
 from datetime import datetime, timezone
 from urllib.parse import urlparse, urljoin
-import configparser
+#import configparser
 
 import praw
 from psaw import PushshiftAPI
 import hvac
+import tomli
+import tomli_w
 
 from db import db
 
@@ -25,10 +27,16 @@ class red:
     ]
 
     def __init__(self) -> None:
-        self.config = configparser.ConfigParser()
-        self.config.read("config.cfg")
-        if not self.config.has_section("CRAWLERS"):
-            self.config.add_section("CRAWLERS")
+        #self.config = configparser.ConfigParser()
+        #self.config.read("config.cfg")
+        #if not self.config.has_section("CRAWLERS"):
+        #    self.config.add_section("CRAWLERS")
+        with open("config.cfg", "rb") as f:
+            self.config = tomli.load(f)
+
+        if self.config.get("CRAWLERS") == None:
+            self.config["CRAWLERS"] = dict()
+
 
         vault = hvac.Client(url='http://localhost:8200')
         creds = vault.secrets.kv.read_secret(path="reddit", mount_point="kv")["data"]["data"]
@@ -181,10 +189,11 @@ class red:
 
     def write_config(self, sub) -> None:
         write_time = int(datetime.now().timestamp())
-        self.config.set("CRAWLERS", f"reddit_{sub}", str(write_time))
+        #self.config.set("CRAWLERS", f"reddit_{sub}", str(write_time))
+        self.config["CRAWLERS"][f"reddit_{sub}"] = int(write_time)
 
-        with open('config.cfg', 'w') as configfile:
-            self.config.write(configfile)
+        with open("config.cfg", "wb") as f:
+            tomli_w.dump(self.config, f)
         return
 
 
