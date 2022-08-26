@@ -5,38 +5,16 @@ from urllib.parse import urlparse, urljoin
 import praw
 from psaw import PushshiftAPI
 import hvac
-import tomli
-import tomli_w
+import tomlkit
 
 from db import db
 
 class red:
-    #list of subreddits to crawl
-    subs = [
-        "abandoned",
-        "abandonedporn",
-        "urbanexploration",
-        "Urbex",
-        "AbandonedAsylums",
-        "Asylums",
-        "AbandonedNJ",
-        "Deserted",
-        "reclaimedbynature",
-        "UET",
-        "OntarioAbandoned"
-    ]
 
-    def __init__(self) -> None:
-        #self.config = configparser.ConfigParser()
-        #self.config.read("config.cfg")
-        #if not self.config.has_section("CRAWLERS"):
-        #    self.config.add_section("CRAWLERS")
-        with open("config.cfg", "rb") as f:
-            self.config = tomli.load(f)
 
-        if self.config.get("CRAWLERS") == None:
-            self.config["CRAWLERS"] = dict()
-
+    def __init__(self, cfg, index=0) -> None:
+        self.cfg = cfg
+        self.index = index
 
         vault = hvac.Client(url='http://localhost:8200')
         creds = vault.secrets.kv.read_secret(path="reddit", mount_point="kv")["data"]["data"]
@@ -52,8 +30,15 @@ class red:
 
 
     def crawl(self):
-        for sub in self.subs:
+        for i, sub in enumerate(self.cfg["subs"]):
             self.crawl_sub_psaw(sub)
+            write_time = int(datetime.now().timestamp())
+            sub.insert(1, write_time)
+            self.cfg["subs"][i] = sub[:2]
+            self.write_config()
+        
+        #for sub in self.subs:
+        #    self.crawl_sub_psaw(sub)
 
         self.stream_subs()
         
@@ -66,7 +51,7 @@ class red:
             SELECT ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM refs WHERE url = ?1)"""
 
         try:
-            subs = self.reddit.subreddit("+".join(self.subs))
+            subs = self.reddit.subreddit("+".join([x[0] for x in self.cfg["subs"]]))
             
             for thread in subs.stream.submissions():
                 db.get_cur().execute("BEGIN")
@@ -85,7 +70,7 @@ class red:
             pass
         
 
-    def crawl_sub_psaw(self, sub: str) -> None:
+    def crawl_sub_psaw(self, sub_arr: list) -> None:
         """
         Crawls the subreddit using pushshift.io (PSAW) and adds the threads link and title to the database.
 
@@ -93,9 +78,10 @@ class red:
         """
         api = PushshiftAPI()
 
+        sub = sub_arr[0]
         ss_args = {"subreddit": sub}
-        if f"reddit_{sub}" in self.config["CRAWLERS"]:
-            ss_args.update({"after": self.config["CRAWLERS"][f"reddit_{sub}"]})
+        if len(sub_arr) == 2:
+            ss_args.update({"after": sub_arr[1]})
 
 
         gen = api.search_submissions(**ss_args)
@@ -120,7 +106,7 @@ class red:
             inserted_count += db.get_cur().executemany(sql_stmnt, cache).rowcount
             db.get_cur().execute("COMMIT")
         
-        self.write_config(sub)
+        #self.write_config(sub)
         print(f"Crawled '{sub}' subreddit: {inserted_count} inserted")
 
         return
@@ -187,17 +173,23 @@ class red:
         return [thread_url, title, crawl_date, iso_date]
 
 
-    def write_config(self, sub) -> None:
-        write_time = int(datetime.now().timestamp())
-        #self.config.set("CRAWLERS", f"reddit_{sub}", str(write_time))
-        self.config["CRAWLERS"][f"reddit_{sub}"] = int(write_time)
-
-        with open("config.cfg", "wb") as f:
-            tomli_w.dump(self.config, f)
+    def write_config(self):            
+        with open("config.cfg", mode="r+t", encoding="utf-8") as fp:
+            cfg = tomlkit.load(fp)
+            fp.seek(0)
+            cfg["crawler"]["reddit"][self.index].update(self.cfg)
+            fp.write(tomlkit.dumps(cfg))
         return
 
 
 if __name__ == "__main__":
     db.connect()
-    x = red()
+    with open("config.cfg", mode="rt", encoding="utf-8") as f:
+        conf = tomlkit.load(f)
+
+    if conf.get("crawler", {}).get("reddit") == None:
+        print("missing")
+        exit()
+
+    x = red(conf["crawler"]["reddit"][0])
     x.crawl()
