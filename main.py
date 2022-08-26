@@ -8,6 +8,8 @@ from db import db
 from tags import add_tag
 import xenforo as xf
 import wordpress as wp
+import reddit as red
+import tomlkit
 
 
 def main() -> None:
@@ -49,66 +51,29 @@ def main() -> None:
 
         return
 
-    xxviii_dayslater = xf.xenforo("https://www.28dayslater.co.uk/forum/", [
-        "noteworthy-reports.115/",
-        "asylums-and-hospitals.4/",
-        "high-stuff.35/",
-        "industrial-sites.6/",
-        "leisure-sites.7/",
-        "residential-sites.92/",
-        "military-sites.5/",
-        "mines-and-quarries.95/",
-        "roc-posts.50/",
-        "restored-roc-posts.82/",
-        "theatres-and-cinemas.78/",
-        "uk-draining-forum.94/",
-        "underground-sites.29/",
-        "european-and-international-sites.46/",
-        "other-sites.8/",
-        "leads-rumours-and-news.57/",
-        "photo-threads.158/",
-        "diehardlove.122/",
-        "downfallen.121/",
-        "solomon.123/"
-    ])
-    xxviii_dayslater.crawl()
-
-
-    oblivionstate = xf.xenforo("https://www.oblivionstate.com/community/forums/", [
-        "industrial-locations.11/",
-        "manors-mansions-residential.26/",
-        "medical-institutions.12/",
-        "public-buildings-education-leisure.13/",
-        "underground-explores.45/",
-        "military-sites.10/",
-        "high-places.54/",
-        "religious-sites.27/",
-        "anything-else.16/",
-        "short-reports.31/",
-        "photo-only-threads.33/"
-    ])
-    oblivionstate.crawl()
-
-
-    derelictplaces = xf.xenforo("https://www.derelictplaces.co.uk/forums/", [
-        "general-exploration-forum.82/",
-        "industrial-sites.64/",
-        "military-sites.63/",
-        "hospitals-asylums.62/",
-        "misc-sites.70/",
-        "residential-sites.68/",
-        "rural-sites.61/",
-        "overseas-sites.143/",
-        "leisure-sites.66/",
-        "underground-sites.139/"
-    ])
-    derelictplaces.crawl()
-
-
-    wp.wordpress("https://www.theurbanexplorer.co.uk").crawl()
-    wp.wordpress("https://www.girlgeekupnorth.co.uk").crawl()
-    wp.wordpress("https://www.whateversleft.co.uk").crawl()
+    crawlers()
     
+    return
+
+
+def crawlers():
+    with open("config.cfg", mode="rt", encoding="utf-8") as fp:
+        cfg = tomlkit.load(fp)
+    
+    if cfg.get("crawler", {}).get("xenforo") != None:
+        for i, site in enumerate(cfg["crawler"]["xenforo"]):
+            x = xf.xenforo(site, i)
+            x.crawl()
+
+    if cfg.get("crawler", {}).get("wordpress") != None:
+        for i, site in enumerate(cfg["crawler"]["wordpress"]):
+            x = wp.wordpress(site, i)
+            x.crawl()
+
+    if cfg.get("crawler", {}).get("reddit") != None:
+        for i, site in enumerate(cfg["crawler"]["reddit"]):
+            x = red.red(site, i)
+            x.crawl()
     return
 
 
