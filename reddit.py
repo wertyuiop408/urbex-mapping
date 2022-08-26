@@ -29,7 +29,7 @@ class red:
         return
 
 
-    def crawl(self):
+    def crawl(self) -> None:
         for i, sub in enumerate(self.cfg["subs"]):
             self.crawl_sub_psaw(sub)
             write_time = int(datetime.now().timestamp())
@@ -37,10 +37,8 @@ class red:
             self.cfg["subs"][i] = sub[:2]
             self.write_config()
         
-        #for sub in self.subs:
-        #    self.crawl_sub_psaw(sub)
-
         self.stream_subs()
+        return
         
 
     def stream_subs(self) -> None:
@@ -173,10 +171,16 @@ class red:
         return [thread_url, title, crawl_date, iso_date]
 
 
-    def write_config(self):            
+    def write_config(self) -> None:
+        """
+        Saves the changes to the configuration to file.
+        The changes are the latest times of the crawl for each subreddit
+        """
         with open("config.cfg", mode="r+t", encoding="utf-8") as fp:
             cfg = tomlkit.load(fp)
             fp.seek(0)
+
+            # update the crawlers config and write to file
             cfg["crawler"]["reddit"][self.index].update(self.cfg)
             fp.write(tomlkit.dumps(cfg))
         return
