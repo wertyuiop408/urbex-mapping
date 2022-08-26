@@ -5,6 +5,7 @@ from urllib.parse import urlsplit, urljoin
 
 import requests
 from bs4 import BeautifulSoup
+import tomlkit
 
 from db import db
 
@@ -117,8 +118,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     """
     db.connect()
-
-    import tomlkit
 
     with open("config.cfg", mode="rt", encoding="utf-8") as f:
         conf = tomlkit.load(f)
