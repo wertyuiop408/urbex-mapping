@@ -1,5 +1,3 @@
-import argparse
-import configparser
 import json
 import math
 from datetime import datetime, timezone
@@ -12,7 +10,7 @@ from db import db
 
 
 class wordpress:
-    def __init__(self, url=""):
+    def __init__(self, cfg, index = 0) -> None:
         """
         https://developer.wordpress.org/rest-api/reference/posts/#list-posts
 
@@ -22,14 +20,8 @@ class wordpress:
 
 
         """
-        if url == "":
-            return
-
-        self.base_url = url
-        self.config = configparser.ConfigParser()
-        self.config.read("config.cfg")
-        if not self.config.has_section("CRAWLERS"):
-            self.config.add_section("CRAWLERS")
+        self.cfg = cfg
+        self.index = index
         return
 
 
@@ -37,16 +29,17 @@ class wordpress:
         fp = self.pagination()
         for page in range(1, math.ceil(fp[1]/100)+1):
             self.pagination(page, 100)
+        write_time = datetime.now().isoformat(timespec="seconds")
+        self.cfg["lc"] = write_time
         self.write_config()
         return
 
 
     def pagination(self, page=1, per_page=10):
-        _url = urljoin(self.base_url, f"wp-json/wp/v2/posts?per_page={per_page}&page={page}")
+        _url = urljoin(self.cfg["url"], f"wp-json/wp/v2/posts?per_page={per_page}&page={page}")
 
-        hostname = f"wp_{urlsplit(self.base_url).hostname}"
-        if hostname in self.config["CRAWLERS"]:
-            _url += f"&after={self.config['CRAWLERS'][hostname]}"
+        if self.cfg.get("lc") != None:
+            _url += f"&after={self.cfg['lc']}"
 
         fp = requests.get(_url)
         
@@ -102,20 +95,38 @@ class wordpress:
 
 
     def write_config(self) -> None:
-        write_time = datetime.now().isoformat(timespec="seconds")
-        hostname = f"wp_{urlsplit(self.base_url).hostname}"
-        self.config.set("CRAWLERS", hostname, str(write_time))
+        """
+        Saves the changes to the configuration to file.
+        The changes are the latest times of the crawl for each subreddit
+        """
+        with open("config.cfg", mode="r+t", encoding="utf-8") as fp:
+            cfg = tomlkit.load(fp)
+            fp.seek(0)
 
-        with open('config.cfg', 'w') as configfile:
-            self.config.write(configfile)
+            # update the crawlers config and write to file
+            cfg["crawler"]["wordpress"][self.index].update(self.cfg)
+            fp.write(tomlkit.dumps(cfg))
         return
 
       
 if __name__ == "__main__":
+    """
+    #not really needed with the config now
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('site')
     args = parser.parse_args()
-
+    """
     db.connect()
-    x = wordpress(args.site)
-    x.crawl()
+
+    import tomlkit
+
+    with open("config.cfg", mode="rt", encoding="utf-8") as f:
+        conf = tomlkit.load(f)
+
+    if conf.get("crawler", {}).get("wordpress") == None:
+        print("No wordpress entry found")
+        exit()
+
+    for index, wp in enumerate(conf["crawler"]["wordpress"]):
+        x = wordpress(wp, index)
+        x.crawl()

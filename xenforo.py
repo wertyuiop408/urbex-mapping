@@ -2,9 +2,10 @@ from datetime import datetime, timezone
 from urllib.parse import urlparse, urljoin
 from collections import namedtuple
 import string
-import requests
 
+import requests
 from bs4 import BeautifulSoup
+import tomlkit
 
 from db import db
 
@@ -135,12 +136,10 @@ class xenforo:
             cfg["crawler"]["xenforo"][self.index].update(self.cfg)
             fp.write(tomlkit.dumps(cfg))
         return
-        
+
 
 if __name__ == "__main__":
     db.connect()
-
-    import tomlkit
 
     with open("config.cfg", mode="rt", encoding="utf-8") as f:
         conf = tomlkit.load(f)
