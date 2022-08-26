@@ -14,12 +14,12 @@ class xenforo:
     suffix_url = "?order=post_date&direction=desc"
     
 
-    def __init__(self, url: str, sections: list) -> None:
+    def __init__(self, cfg, index=0) -> None:
+        self.cfg = cfg
+        self.index = index
         #use this var to force looking through sections we already have crawled
         self.force = False
 
-        self.base_url = url
-        self.sections = sections
         return
 
 
@@ -28,16 +28,24 @@ class xenforo:
         total_in = 0
 
         #crawl each section listed in the list
-        for section in self.sections:
+        for i, section in enumerate(self.cfg["subs"]):
             sect = self.crawl_section(section)
+            write_time = datetime.now().isoformat(timespec="seconds")
+            section.insert(1, write_time)
+            self.cfg["subs"][i] = section[:2]
+            self.write_config()
+
             total_in += sect[0]
-            print(f"{section} Inserted {sect[0]}/{sect[1]} rows from {sect[2]}/{sect[3]} pages")
+            print(f"{section[0]} Inserted {sect[0]}/{sect[1]} rows from {sect[2]}/{sect[3]} pages")
 
         print(f"Total inserted: {total_in}")
         return
 
 
-    def crawl_section(self, section: str, page: int = 1) -> tuple:
+    def crawl_section(self, section_arr: list, page: int = 1) -> tuple:
+        # quick fix, index 1 is a time (if it exists) of last crawl
+        section = section_arr[0]
+
         print(f"{section} starting crawl")
 
         # we still want to allow duplicate url in general, but for crawling, we only want to have 1
@@ -48,7 +56,7 @@ class xenforo:
         max_pages = 0
 
         while True:
-            abs_url = f"{self.base_url}{section}page-{page}{self.suffix_url}"
+            abs_url = f"{self.cfg['url']}{section}page-{page}{self.suffix_url}"
             entry = self.get_section_page(abs_url)
 
             #make sure that if the page fails, then we stop crawling that section
@@ -114,9 +122,34 @@ class xenforo:
         return [name, tags, thread_date]
 
 
+    def write_config(self) -> None:
+        """
+        Saves the changes to the configuration to file.
+        The changes are the latest times of the crawl for each subreddit
+        """
+        with open("config.cfg", mode="r+t", encoding="utf-8") as fp:
+            cfg = tomlkit.load(fp)
+            fp.seek(0)
+
+            # update the crawlers config and write to file
+            cfg["crawler"]["xenforo"][self.index].update(self.cfg)
+            fp.write(tomlkit.dumps(cfg))
+        return
+        
 
 if __name__ == "__main__":
     db.connect()
-    os = xenforo()
-    os.crawl()
+
+    import tomlkit
+
+    with open("config.cfg", mode="rt", encoding="utf-8") as f:
+        conf = tomlkit.load(f)
+
+    if conf.get("crawler", {}).get("xenforo") == None:
+        print("No forum entry found")
+        exit()
+
+    for index, forum in enumerate(conf["crawler"]["xenforo"]):
+        x = xenforo(forum, index)
+        x.crawl()
     
