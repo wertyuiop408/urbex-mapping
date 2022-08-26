@@ -192,8 +192,9 @@ if __name__ == "__main__":
         conf = tomlkit.load(f)
 
     if conf.get("crawler", {}).get("reddit") == None:
-        print("missing")
+        print("No reddit found")
         exit()
 
-    x = red(conf["crawler"]["reddit"][0])
-    x.crawl()
+    for index, reddit in enumerate(conf["crawler"]["reddit"]):
+        x = red(reddit, index)
+        x.crawl()
