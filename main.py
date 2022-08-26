@@ -60,20 +60,22 @@ def crawlers():
     with open("config.cfg", mode="rt", encoding="utf-8") as fp:
         cfg = tomlkit.load(fp)
     
-    if cfg.get("crawler", {}).get("xenforo") != None:
-        for i, site in enumerate(cfg["crawler"]["xenforo"]):
-            x = xf.xenforo(site, i)
-            x.crawl()
+    if cfg.get("crawler") == None:
+        return
 
-    if cfg.get("crawler", {}).get("wordpress") != None:
-        for i, site in enumerate(cfg["crawler"]["wordpress"]):
-            x = wp.wordpress(site, i)
-            x.crawl()
+    for c_name in cfg["crawler"]:
+        for i, c in enumerate(cfg["crawler"][c_name]):
+            x = None
+            if c_name == "reddit":
+                x = red.red(c, i)
+            elif c_name == "xenforo":
+                x = xf.xenforo(c, i)
+            elif c_name == "wordpress":
+                x = wp.wordpress(c, i)
 
-    if cfg.get("crawler", {}).get("reddit") != None:
-        for i, site in enumerate(cfg["crawler"]["reddit"]):
-            x = red.red(site, i)
-            x.crawl()
+            if x != None:
+                x.crawl()
+
     return
 
 

@@ -37,7 +37,7 @@ class red:
             self.cfg["subs"][i] = sub[:2]
             self.write_config()
         
-        self.stream_subs()
+        #self.stream_subs()
         return
         
 
