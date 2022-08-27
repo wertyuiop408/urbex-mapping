@@ -16,7 +16,13 @@ class red:
         self.cfg = cfg
         self.index = index
 
-        vault = hvac.Client(url='http://localhost:8200')
+
+        with open("config.cfg", mode="rt", encoding="utf-8") as f:
+            conf = tomlkit.loads(f)
+
+        conf_url = conf.get("vault", {"url":"http://localhost:8200"}).get("url", {"url":"http://localhost:8200"})
+        
+        vault = hvac.Client(url=conf_url)
         creds = vault.secrets.kv.read_secret(path="reddit", mount_point="kv")["data"]["data"]
         self.limit = 1000
         self.reddit = praw.Reddit(
