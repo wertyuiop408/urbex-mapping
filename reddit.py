@@ -16,7 +16,10 @@ class red:
         self.cfg = cfg
         self.index = index
 
+        return
 
+
+    def init_praw(self) -> None:
         with open("config.cfg", mode="rt", encoding="utf-8") as f:
             conf = tomlkit.loads(f)
 
