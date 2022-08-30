@@ -48,7 +48,9 @@ class wordpress:
             _url += f"&after={self.cfg['lc']}"
 
         fp = requests.get(_url, verify=False)
-        
+        if page == 1:
+            print(f"[{fp.status_code}] "+ urljoin(self.cfg["url"], "/"))
+
         total = int(fp.headers["X-WP-Total"])
         content = json.loads(fp.content)
         count = len(content)
@@ -69,7 +71,7 @@ class wordpress:
             ])
 
         ins = db.get_cur().executemany(sql_stmnt, arr).rowcount
-        print(f"inserted {ins} records")
+        print(f"    inserted {ins} records")
 
         return (count, total)
 
