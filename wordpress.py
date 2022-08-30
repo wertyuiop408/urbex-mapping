@@ -6,8 +6,13 @@ from urllib.parse import urlsplit, urljoin
 import requests
 from bs4 import BeautifulSoup
 import tomlkit
+import urllib3
 
 from db import db
+
+
+#disable warnings in requests about SSL certs being invalid
+urllib3.disable_warnings()
 
 
 class wordpress:
@@ -42,7 +47,7 @@ class wordpress:
         if self.cfg.get("lc") != None:
             _url += f"&after={self.cfg['lc']}"
 
-        fp = requests.get(_url)
+        fp = requests.get(_url, verify=False)
         
         total = int(fp.headers["X-WP-Total"])
         content = json.loads(fp.content)
@@ -80,7 +85,7 @@ class wordpress:
             print("already exists")
             return
 
-        page = requests.get(url)
+        page = requests.get(url, verify=False)
         soup = BeautifulSoup(page.content, "html.parser")
         title = soup.find("meta", property="og:title")["content"]
         _url = soup.find("meta", property="og:url")["content"]

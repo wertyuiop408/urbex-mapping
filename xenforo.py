@@ -6,6 +6,11 @@ import string
 import requests
 from bs4 import BeautifulSoup
 import tomlkit
+import urllib3
+
+#disable warnings in requests about SSL certs being invalid
+urllib3.disable_warnings()
+
 
 from db import db
 
@@ -90,7 +95,7 @@ class xenforo:
 
 
     def get_section_page(self, direct_url: str) -> dict:
-        page = requests.get(direct_url)
+        page = requests.get(direct_url, verify=False)
 
         if page.status_code != 200:
             return {'status_code':page.status_code}
@@ -114,7 +119,7 @@ class xenforo:
 
 
     def get_thread(self, url: str) -> list:
-        page = requests.get(url)
+        page = requests.get(url, verify=False)
         soup = BeautifulSoup(page.content, "html.parser")
         name = soup.select_one(".p-title-value").text
         thread_date = soup.select_one(".u-concealed > time").get("datetime")
