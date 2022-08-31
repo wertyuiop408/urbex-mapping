@@ -33,8 +33,16 @@ class wordpress:
 
     def crawl(self):
         fp = self.pagination()
+        if fp[0] == None:
+            print("    Not a valid wordpress site")
+            return
+
+
         for page in range(1, math.ceil(fp[1]/100)+1):
-            self.pagination(page, 100)
+            pagi = self.pagination(page, 100)
+            if pagi[0] == None:
+                return
+
         write_time = datetime.now().isoformat(timespec="seconds")
         self.cfg["lc"] = write_time
         self.write_config()
@@ -51,11 +59,19 @@ class wordpress:
         if page == 1:
             print(f"[{fp.status_code}] "+ urljoin(self.cfg["url"], "/"))
 
-        total = int(fp.headers["X-WP-Total"])
-        content = json.loads(fp.content)
-        count = len(content)
-        
+        try:
+            #if the header doesn;t exist, or it's not json.
+            total = int(fp.headers["X-WP-Total"])
+            content = json.loads(fp.content)
+        except Exception:
+            return (None, None)
 
+        self.save_pagination(content)
+        count = len(content)
+        return (count, total)
+
+
+    def save_pagination(self, content) -> None:
         sql_stmnt = """INSERT OR IGNORE INTO refs(url, title, date_inserted, date_post) 
             SELECT ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM refs WHERE url = ?1)"""
 
@@ -73,7 +89,7 @@ class wordpress:
         ins = db.get_cur().executemany(sql_stmnt, arr).rowcount
         print(f"    inserted {ins} records")
 
-        return (count, total)
+        return
 
 
     def insert(self, url):
