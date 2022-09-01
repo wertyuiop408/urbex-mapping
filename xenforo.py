@@ -32,6 +32,8 @@ class xenforo:
     def crawl(self) -> None:
         #total entries
         total_in = 0
+        _url = urljoin(self.cfg["url"], "/")
+        print(_url)
 
         #crawl each section listed in the list
         for i, section in enumerate(self.cfg["subs"]):
@@ -42,17 +44,15 @@ class xenforo:
             self.write_config()
 
             total_in += sect[0]
-            print(f"{section[0]} Inserted {sect[0]}/{sect[1]} rows from {sect[2]}/{sect[3]} pages")
+            print(f"    {section[0]} Inserted {sect[0]}/{sect[1]} rows from {sect[2]}/{sect[3]} pages")
 
-        print(f"Total inserted: {total_in}")
+        print(f"    Total inserted: {total_in}")
         return
 
 
     def crawl_section(self, section_arr: list, page: int = 1) -> tuple:
         # quick fix, index 1 is a time (if it exists) of last crawl
         section = section_arr[0]
-
-        print(f"{section} starting crawl")
 
         # we still want to allow duplicate url in general, but for crawling, we only want to have 1
         sql_stmnt = """INSERT OR IGNORE INTO refs(url, title, date_inserted, date_post) 
