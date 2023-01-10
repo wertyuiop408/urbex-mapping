@@ -15,6 +15,9 @@ psaw = "^0.1.0"
 Flask = "^2.2.2"
 hvac = "^0.11.2"
 tomlkit = "^0.11.4"
+SQLAlchemy = "^1.4.46"
+aiohttp = "^3.8.3"
+lxml = "^4.9.2"
 
 [tool.poetry.dev-dependencies]
 
