@@ -28,7 +28,7 @@ class spider(ABC):
                     return await cb(res, *cb1, **cb2)
                 return
         except Exception as e:
-            print("error")
+            print("error", url_)
             print(e)
             return
 
