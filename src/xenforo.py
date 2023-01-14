@@ -47,6 +47,16 @@ class xenforo(spider):
         self._add_url(_url, self.parse_section)
         return
 
+    def get_config_time(self, section):
+        conf = config()
+        crawler_index = conf.get_crawler_index(self.base_url)
+        if crawler_index == -1:
+            return -1
+
+        sub_index = conf.get_sub_index(conf.cfg["crawler"]["xenforo"][crawler_index], section)        
+        return conf.cfg["crawler"]["xenforo"][crawler_index]["subs"][sub_index][1]
+
+
     async def parse_section(self, res, *cb1, **cb2):
         crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
 

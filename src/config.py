@@ -34,9 +34,8 @@ class config:
         return -1
 
     #get the index of the section for crawler section. returns -1 if not found
-    def get_sub_index(sub):
-        self.load()
-        for count, value in enumerate(self.cfg["subs"]):
+    def get_sub_index(self, cfg, sub):
+        for count, value in enumerate(cfg["subs"]):
             if value[0] == sub:
                 return count
         return -1
