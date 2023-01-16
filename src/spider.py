@@ -7,7 +7,7 @@ from sqlalchemy import text
 from db_base import session_factory
 
 
-TASKS = []
+TASKS = set()
 COUNTER = 0
 
 
@@ -15,8 +15,8 @@ class spider(ABC):
     def _add_url(self, url_, callback=None, *cb1, **cb2):
         print(f"adding {url_}")
         tt = asyncio.create_task(self.get_url(url_, callback, *cb1, **cb2))
-        TASKS.append(tt)
-        # TODO: Add a callback to remove the task from TASK when complete. See ayncio docs for add_done_callback
+        TASKS.add(tt)
+        tt.add_done_callback(TASKS.discard)
 
     async def get_url(self, url_, cb=None, *cb1, **cb2):
         print(f"getting {url_}")
