@@ -28,7 +28,6 @@ class xenforo(spider):
         
         test_url = self.base_url + "noteworthy-reports.115/" + self.suffix_url
         self.crawl()
-        
         #self._add_url(test_url, self.parse_section, nxt=False)
 
 
@@ -53,8 +52,20 @@ class xenforo(spider):
         if crawler_index == -1:
             return -1
 
-        sub_index = conf.get_sub_index(conf.cfg["crawler"]["xenforo"][crawler_index], section)        
+        sub_index = conf.get_sub_index(conf.cfg["crawler"]["xenforo"][crawler_index], section)
         return conf.cfg["crawler"]["xenforo"][crawler_index]["subs"][sub_index][1]
+
+
+    def write_config_time(self, section, time_):
+        conf = config()
+        crawler_index = conf.get_crawler_index(self.base_url)
+        if crawler_index == -1:
+            return -1
+
+        sub_index = conf.get_sub_index(conf.cfg["crawler"]["xenforo"][crawler_index], section)
+        conf.cfg["crawler"]["xenforo"][crawler_index]["subs"][sub_index][1] = time_
+        conf.save()
+        return
 
 
     async def parse_section(self, res, *cb1, **cb2):
@@ -76,6 +87,12 @@ class xenforo(spider):
         curr_page = int(soup.select("ul.pageNav-main > li.pageNav-page--current > a")[0].text)
         max_pages = int(soup.select("ul.pageNav-main > li.pageNav-page:nth-last-of-type(1) > a")[0].text)
 
+        first_post_date = list_of_threads[0].select_one("time").get("datetime").replace("+00", "+00:")
+        x1 = datetime.fromisoformat(first_post_date)
+        x2 = datetime.fromisoformat(self.get_config_time(section+"/")).astimezone(timezone.utc)
+        if x1 < x2:
+            cb2["nxt"] = False
+
         #generate next batch of section urls to crawl.
         url_limit = getattr(self.sess._connector, "limit_per_host", 5)
         if cb2.get("nxt"):
@@ -85,12 +102,13 @@ class xenforo(spider):
                 if curr_page + i > max_pages:
                     break
 
-                _url = self.base_url + section + "page-" + str(curr_page + i) + self.suffix_url
+                _url = self.base_url + section + "/page-" + str(curr_page + i) + self.suffix_url
 
                 #set the last one of each batch
                 nxt = False
                 if i == url_limit-1:
                     nxt = True
+
                 self._add_url(_url, nxt=nxt)
 
         ret_list = list()
@@ -103,6 +121,7 @@ class xenforo(spider):
                 )
             ret_list.append(data.__dict__)
         self.save_to_db(ret_list)
+        self.write_config_time(section+"/", crawl_date)
         return
 
 
