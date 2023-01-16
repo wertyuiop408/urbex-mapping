@@ -11,25 +11,13 @@ from db_tables import refs
 from config import config
 
 class xenforo(spider):
-    """
-    [[crawler.xenforo]]
-        site = "28dayslater"
-        url = "https://www.28dayslater.co.uk/forum/"
-        subs = [
-            ["noteworthy-reports.115/", "2022-12-18T16:52:48"],
-    """
-
     suffix_url = "?order=post_date&direction=desc"
 
     def __init__(self, _url, sess):
         self.sess = sess
         
         self.base_url = _url.strip(" ").rstrip("/") + "/"
-        
-        test_url = self.base_url + "noteworthy-reports.115/" + self.suffix_url
         self.crawl()
-        #self._add_url(test_url, self.parse_section, nxt=False)
-
 
     def crawl(self):
         conf = config()
