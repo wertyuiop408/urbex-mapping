@@ -37,7 +37,7 @@ class xenforo(spider):
         subs = conf.cfg["crawler"]["xenforo"][index]["subs"]
         for i, v in enumerate(subs):
             _url = self.base_url + subs[i][0] + self.suffix_url
-            self._add_url(_url, self.parse_section, nxt=False)
+            self._add_url(_url, self.parse_section, nxt=True)
         return
 
 

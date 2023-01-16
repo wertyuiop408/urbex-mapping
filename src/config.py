@@ -1,11 +1,8 @@
 import tomlkit
 """
-https://toml.io/en/v1.0.0#array-of-tables
+https://toml.io/en/v1.0.0
 https://www.toml-lint.com/
 https://tomlkit.readthedocs.io/en/latest/api/
-
-x = get_crawler_index("https://www.28dayslater.co.uk/forum/", conf)
-y = get_sub_index("solomon.123/", conf["crawler"]["xenforo"][x])
 """
 
 class config:
