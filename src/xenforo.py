@@ -52,8 +52,11 @@ class xenforo(spider):
         if crawler_index == -1:
             return -1
 
-        sub_index = conf.get_sub_index(conf.cfg["crawler"]["xenforo"][crawler_index], section)
-        return conf.cfg["crawler"]["xenforo"][crawler_index]["subs"][sub_index][1]
+        try:
+            sub_index = conf.get_sub_index(conf.cfg["crawler"]["xenforo"][crawler_index], section)
+            return conf.cfg["crawler"]["xenforo"][crawler_index]["subs"][sub_index][1]
+        except Exception:
+            return None
 
 
     def write_config_time(self, section, time_):
@@ -63,7 +66,7 @@ class xenforo(spider):
             return -1
 
         sub_index = conf.get_sub_index(conf.cfg["crawler"]["xenforo"][crawler_index], section)
-        conf.cfg["crawler"]["xenforo"][crawler_index]["subs"][sub_index][1] = time_
+        conf.cfg["crawler"]["xenforo"][crawler_index]["subs"][sub_index] = [section, time_]
         conf.save()
         return
 
@@ -88,10 +91,14 @@ class xenforo(spider):
         max_pages = int(soup.select("ul.pageNav-main > li.pageNav-page:nth-last-of-type(1) > a")[0].text)
 
         first_post_date = list_of_threads[0].select_one("time").get("datetime").replace("+00", "+00:")
-        x1 = datetime.fromisoformat(first_post_date)
-        x2 = datetime.fromisoformat(self.get_config_time(section+"/")).astimezone(timezone.utc)
-        if x1 < x2:
-            cb2["nxt"] = False
+        post_date = datetime.fromisoformat(first_post_date)
+        gct = self.get_config_time(section+"/")
+
+        if gct != None:
+            config_date = datetime.fromisoformat(gct).astimezone(timezone.utc)
+            if post_date < config_date:
+                cb2["nxt"] = False
+            
 
         #generate next batch of section urls to crawl.
         url_limit = getattr(self.sess._connector, "limit_per_host", 5)
