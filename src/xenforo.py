@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 import time
 from urllib.parse import urlparse, urljoin
 import asyncio
+import re
 
 from spider import *
 from bs4 import BeautifulSoup
@@ -15,6 +16,7 @@ class xenforo(spider):
 
     def __init__(self, _url, sess):
         self.sess = sess
+        self.crawl_times = dict()
         
         self.base_url = _url.strip(" ").rstrip("/") + "/"
         self.crawl()
@@ -78,15 +80,21 @@ class xenforo(spider):
         curr_page = int(soup.select("ul.pageNav-main > li.pageNav-page--current > a")[0].text)
         max_pages = int(soup.select("ul.pageNav-main > li.pageNav-page:nth-last-of-type(1) > a")[0].text)
 
-        first_post_date = list_of_threads[0].select_one("time").get("datetime").replace("+00", "+00:")
+        #get date of first non stickied post
+        first_post_date = soup.select(".structItemContainer-group.js-threadList > .structItem--thread")[0].select_one("time").get("datetime")
+
+        #cheesy hack for timezone fix to ISO8601
+        if first_post_date[-5] == "+":
+            first_post_date = first_post_date[:-2] + ":" + first_post_date[-2:]
+
         post_date = datetime.fromisoformat(first_post_date)
         gct = self.get_config_time(section+"/")
-
+        
+        #is it older
         if gct != None:
             config_date = datetime.fromisoformat(gct).astimezone(timezone.utc)
             if post_date < config_date:
                 cb2["nxt"] = False
-            
 
         #generate next batch of section urls to crawl.
         url_limit = getattr(self.sess._connector, "limit_per_host", 5)
