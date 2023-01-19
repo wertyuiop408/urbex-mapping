@@ -100,7 +100,7 @@ class xenforo(spider):
         url_limit = getattr(self.sess._connector, "limit_per_host", 5)
         if cb2.get("nxt"):
             for i in range(1, url_limit+1):
-                
+
                 #if there are no more pages in section, then stop
                 if curr_page + i > max_pages:
                     break
@@ -109,10 +109,9 @@ class xenforo(spider):
 
                 #set the last one of each batch
                 nxt = False
-                if i == url_limit-1:
+                if i == url_limit:
                     nxt = True
-
-                self._add_url(_url, nxt=nxt)
+                self._add_url(_url, self.parse_section, nxt=nxt)
 
         ret_list = list()
         for x in list_of_threads:

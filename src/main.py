@@ -13,7 +13,8 @@ async def main():
         xenforo("https://www.28dayslater.co.uk/forum/", session)
 
         print(f"---- {(time.time() - start)} fini urbexForum ----")
-        op = await asyncio.gather(*TASKS)
+        while TASKS:
+            op = await asyncio.gather(*TASKS)
         print(f"---- {(time.time() - start)} fini TASKS ----")
 
 if __name__ == "__main__":
