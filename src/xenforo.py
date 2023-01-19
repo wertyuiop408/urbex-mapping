@@ -72,7 +72,8 @@ class xenforo(spider):
             return
 
         section = _url_path_split[1]
-
+        if self.crawl_times.get(section) == False:
+            self.crawl_times[section] = crawl_date
         
         txt = await res.text()
         soup = BeautifulSoup(txt, "lxml")
@@ -89,7 +90,7 @@ class xenforo(spider):
 
         post_date = datetime.fromisoformat(first_post_date)
         gct = self.get_config_time(section+"/")
-        
+
         #is it older
         if gct != None:
             config_date = datetime.fromisoformat(gct).astimezone(timezone.utc)
@@ -123,7 +124,8 @@ class xenforo(spider):
                 )
             ret_list.append(data.__dict__)
         self.save_to_db(ret_list)
-        self.write_config_time(section+"/", crawl_date)
+        self.write_config_time(section+"/", self.crawl_times[section])
+
         return
 
 
