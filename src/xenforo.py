@@ -29,12 +29,6 @@ class xenforo(spider):
             self._add_url(_url, self.parse_section, nxt=True)
         return
 
-
-    def get_section(self, section, page=1, count=1):
-        _url = self.base_url + section + "page-" + str(page) + self.suffix_url
-        self._add_url(_url, self.parse_section)
-        return
-
     def get_config_time(self, section):
         conf = config()
         crawler_index = conf.get_crawler_index(self.base_url)
