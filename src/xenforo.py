@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 import time
 from urllib.parse import urlparse, urljoin
 import asyncio
-import re
 
 from spider import *
 from bs4 import BeautifulSoup
