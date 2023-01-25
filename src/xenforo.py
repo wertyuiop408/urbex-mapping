@@ -6,6 +6,7 @@ import asyncio
 from spider import *
 from bs4 import BeautifulSoup
 from yarl import URL
+from aiohttp.client import ClientSession
 
 from db_tables import refs
 from config import config
@@ -13,14 +14,14 @@ from config import config
 class xenforo(spider):
     suffix_url = "?order=post_date&direction=desc"
 
-    def __init__(self, _url, sess):
-        self.sess = sess
-        self.crawl_times = dict()
+    def __init__(self, url_: str, sess: ClientSession) -> None:
+        self.sess = sess #type: ClientSession
+        self.crawl_times = dict()#type: ignore
         
-        self.base_url = _url.strip(" ").rstrip("/") + "/"
+        self.base_url = url_.strip(" ").rstrip("/") + "/"
         self.crawl()
 
-    def crawl(self):
+    def crawl(self) -> None:
         conf = config()
         index = conf.get_crawler_index(self.base_url)
         subs = conf.cfg["crawler"]["xenforo"][index]["subs"]
@@ -29,7 +30,7 @@ class xenforo(spider):
             self._add_url(_url, self.parse_section, nxt=True)
         return
 
-    def get_config_time(self, section):
+    def get_config_time(self, section: str):
         conf = config()
         crawler_index = conf.get_crawler_index(self.base_url)
         if crawler_index == -1:
@@ -42,11 +43,11 @@ class xenforo(spider):
             return None
 
 
-    def write_config_time(self, section, time_):
+    def write_config_time(self, section: str, time_: str) -> None:
         conf = config()
         crawler_index = conf.get_crawler_index(self.base_url)
         if crawler_index == -1:
-            return -1
+            return
 
         sub_index = conf.get_sub_index(conf.cfg["crawler"]["xenforo"][crawler_index], section)
         conf.cfg["crawler"]["xenforo"][crawler_index]["subs"][sub_index] = [section, time_]

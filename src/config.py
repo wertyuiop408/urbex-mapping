@@ -6,14 +6,15 @@ https://tomlkit.readthedocs.io/en/latest/api/
 """
 
 class config:
-    FILE = "config.cfg"
-    def __init__(self):
+    FILE: str = "config.cfg"
+    def __init__(self) -> None:
         self.load()
         return
 
     def load(self):
         with open(self.FILE, mode="rt", encoding="utf-8") as f:
             self.cfg = tomlkit.load(f)
+        return
 
     def save(self):
         with open(self.FILE, mode="r+t", encoding="utf-8") as fp:

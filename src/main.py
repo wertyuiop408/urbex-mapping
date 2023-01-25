@@ -5,7 +5,7 @@ import time
 from xenforo import xenforo
 from spider import TASKS
 
-async def main():
+async def main() -> None:
     start = time.time()
     CONN = aiohttp.TCPConnector(limit_per_host=3)
 
