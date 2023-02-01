@@ -6,6 +6,7 @@ from typing import Optional
 
 from spider import *
 from bs4 import BeautifulSoup
+from bs4 import Tag
 from yarl import URL
 from aiohttp.client import ClientSession
 
@@ -90,7 +91,7 @@ class xenforo(spider):
         conf.save()
         return
 
-    async def parse_section(self, res, *cb1, **cb2):
+    async def parse_section(self, res, *cb1, **cb2) -> None:
         crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
         # get the section name, and page number from the url
@@ -119,13 +120,12 @@ class xenforo(spider):
         )
 
         # get date of first non stickied post
-        first_post_date = (
-            soup.select(
-                ".structItemContainer-group.js-threadList > .structItem--thread"
-            )[0]
-            .select_one("time")
-            .get("datetime")
-        )
+        first_post_date2 = soup.select(
+            ".structItemContainer-group.js-threadList > .structItem--thread"
+        )[0].select_one("time")
+        if not isinstance(first_post_date2, Tag):
+            return
+        first_post_date = str(first_post_date2.get("datetime"))
 
         # cheesy hack for timezone fix to ISO8601
         if first_post_date[-5] == "+":
@@ -136,7 +136,7 @@ class xenforo(spider):
 
         # is it older
         if gct != None:
-            config_date = datetime.fromisoformat(gct).astimezone(timezone.utc)
+            config_date = datetime.fromisoformat(str(gct)).astimezone(timezone.utc)
             if post_date < config_date:
                 self.write_config_time(section + "/", self.crawl_times[section])
                 cb2["nxt"] = False
@@ -167,15 +167,33 @@ class xenforo(spider):
 
         ret_list = list()
         for x in list_of_threads:
+            lot_title = ""
+            lot_url = ""
+            lot_date_post = ""
+            lot_date_inserted = ""
+
+            lot_title_select = x.select_one(".structItem-title")
+            if isinstance(lot_title_select, Tag):
+                title = str(lot_title_select.get_text().strip())
+
+            lot_url_select = x.select_one(".structItem-title > a:last-of-type")
+            if isinstance(lot_url_select, Tag):
+                lot_url = urljoin(str(_url), str(lot_url_select.get("href")))
+
+            lot_date_post_select = x.select_one("time")
+            if isinstance(lot_date_post_select, Tag):
+                lot_date_post = str(lot_date_post_select.get("datetime"))
+
+            # check if one at least has some data
+            if all(
+                i == "" for i in [lot_title, lot_url, lot_date_post, lot_date_inserted]
+            ):
+                return
+
             data = refs(
-                title=str(x.select_one(".structItem-title").get_text().strip()).replace(
-                    "\n", " "
-                ),
-                url=urljoin(
-                    str(_url),
-                    x.select_one(".structItem-title > a:last-of-type").get("href"),
-                ),
-                date_post=x.select_one("time").get("datetime"),
+                title=lot_title.strip().replace("\n", " "),
+                url=lot_url,
+                date_post=lot_date_post,
                 date_inserted=crawl_date,
             )
             ret_list.append(data.__dict__)
