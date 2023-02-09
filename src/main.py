@@ -10,7 +10,7 @@ async def main() -> None:
     CONN = aiohttp.TCPConnector(limit_per_host=3)
 
     async with aiohttp.ClientSession(connector=CONN) as session:
-        xenforo("https://www.28dayslater.co.uk/forum/", session)
+        xenforo("https://www.28dayslater.co.uk/forum/", session).crawl()
 
         print(f"---- {(time.time() - start)} fini urbexForum ----")
         while TASKS:

@@ -22,7 +22,7 @@ class xenforo(spider):
         self.crawl_times = dict()  # type: ignore
 
         self.base_url = url_.strip(" ").rstrip("/") + "/"
-        self.crawl()
+        #self.crawl()
 
     def crawl(self) -> None:
         conf = config()
