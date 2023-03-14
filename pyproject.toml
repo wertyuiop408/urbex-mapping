@@ -1,9 +1,10 @@
 [tool.poetry]
-name = "urbex-map"
+name = "urbex"
 version = "0.1.0"
 description = ""
 authors = ["wertyuiop408 <wertyuiop408@users.noreply.github.com>"]
 license = "MIT"
+packages = [{include = "urbex", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -18,12 +19,18 @@ tomlkit = "^0.11.4"
 SQLAlchemy = {extras = ["mypy"], version = "^1.4.46"}
 aiohttp = "^3.8.3"
 lxml = "^4.9.2"
-black = "^22.12.0"
-mypy = "^0.991"
 sqlalchemy-stubs = "^0.4"
-MonkeyType = "^22.2.0"
 
 [tool.poetry.dev-dependencies]
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.2.2"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.1.0"
+mypy = "^1.1.1"
+monkeytype = "^22.2.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -31,3 +38,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
 plugins = "sqlmypy"
+
+[tool.pytest.ini_options]
+pythonpath=["src/urbex"]
