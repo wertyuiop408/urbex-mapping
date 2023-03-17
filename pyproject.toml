@@ -23,14 +23,16 @@ sqlalchemy-stubs = "^0.4"
 
 [tool.poetry.dev-dependencies]
 
-[tool.poetry.group.test.dependencies]
-pytest = "^7.2.2"
-
-
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
 mypy = "^1.1.1"
 monkeytype = "^22.2.0"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.2.2"
+pytest-asyncio = "^0.20.3"
+aioresponses = "^0.7.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -41,3 +43,4 @@ plugins = "sqlmypy"
 
 [tool.pytest.ini_options]
 pythonpath=["src/urbex"]
+asyncio_mode="auto"
