@@ -28,8 +28,8 @@ class spider(ABC):
 
                 # Call the callback. This is semi-blocking as res.text() has to be awaited. maybe call it here and return it.
                 if cb:
-                    return await cb(res, *cb1, **cb2)
-                return
+                    await cb(res, *cb1, **cb2)
+                return res
         except Exception as e:
             print("error", url_)
             print(e)
