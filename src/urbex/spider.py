@@ -26,18 +26,25 @@ class spider(ABC):
         print(f"getting {url_}")
         try:
             async with self.sess.get(url_) as res:
+                await self.handle_callback(res, callback)
 
-                # Call the callback. This is semi-blocking as res.text() has to be awaited. maybe call it here and return it.
-                if callback:
-                    if not isinstance(callback, partial):
-                        callback = partial(callback)
-                    await partial(callback.func, (res,) + callback.args)()
-                    
                 return res
         except Exception as e:
             print("error", url_)
             print(e)
             return
+            
+    async def handle_callback(self, res, callback=None):
+        # Call the callback. This is semi-blocking as res.text() has to be awaited. maybe call it here and return it.
+        if callback:
+            if not isinstance(callback, partial):
+                callback = partial(callback)
+
+            if callback.keywords:
+                await partial(callback.func, res, *callback.args, callback.keywords)()
+            else:
+                await partial(callback.func, res, *callback.args)()
+        return
 
     def save_to_db(self, data_arr: list[dict[str, Any]]) -> int:
         sql_stmnt = text(
