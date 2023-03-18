@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from functools import partial
 
 import aiohttp
 import asyncio
@@ -15,20 +16,23 @@ COUNTER = 0
 class spider(ABC):
     sess: ClientSession
 
-    def _add_url(self, url_: str, callback=None, *cb1, **cb2) -> None:
+    def _add_url(self, url_: str, callback=None) -> None:
         print(f"adding {url_}")
-        tt = asyncio.create_task(self.get_url(url_, callback, *cb1, **cb2))
+        tt = asyncio.create_task(self.get_url(url_, callback))
         TASKS.add(tt)
         tt.add_done_callback(TASKS.discard)
 
-    async def get_url(self, url_: str, cb=None, *cb1, **cb2):
+    async def get_url(self, url_: str, callback=None):
         print(f"getting {url_}")
         try:
             async with self.sess.get(url_) as res:
 
                 # Call the callback. This is semi-blocking as res.text() has to be awaited. maybe call it here and return it.
-                if cb:
-                    await cb(res, *cb1, **cb2)
+                if callback:
+                    if not isinstance(callback, partial):
+                        callback = partial(callback)
+                    await partial(callback.func, (res,) + callback.args)()
+                    
                 return res
         except Exception as e:
             print("error", url_)
