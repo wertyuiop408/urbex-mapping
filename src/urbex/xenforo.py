@@ -174,7 +174,7 @@ class xenforo(spider):
 
             lot_title_select = x.select_one(".structItem-title")
             if isinstance(lot_title_select, Tag):
-                title = str(lot_title_select.get_text().strip())
+                lot_title = str(lot_title_select.get_text().strip())
 
             lot_url_select = x.select_one(".structItem-title > a:last-of-type")
             if isinstance(lot_url_select, Tag):
@@ -199,4 +199,4 @@ class xenforo(spider):
             ret_list.append(data.__dict__)
         self.save_to_db(ret_list)
 
-        return
+        return ret_list
