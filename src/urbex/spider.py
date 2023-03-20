@@ -26,13 +26,12 @@ class spider(ABC):
         print(f"getting {url_}")
         try:
             async with self.sess.get(url_) as res:
-                await self.handle_callback(res, callback)
-
-                return res
+                awaited = await self.handle_callback(res, callback)
+                return (res, awaited)
         except Exception as e:
             print("error", url_)
             print(e)
-            return
+            return (e, None)
 
     async def handle_callback(self, res, callback=None):
         if callback == None:
