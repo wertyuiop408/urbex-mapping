@@ -1,5 +1,8 @@
 import asyncio
+import builtins
 from functools import partial
+from unittest.mock import patch, mock_open
+from config import config
 
 import pytest
 import aiohttp
@@ -75,6 +78,74 @@ async def test_thread_page(mock):
         res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_section, nxt=False))
         assert cb == None
 
+@pytest.mark.parametrize(
+    "input_",
+    (
+"""[crawler]
+[[crawler.xenforo]]
+site = "example"
+url = "https://www.example.co.uk/forum/"
+""",
+"""
+[[crawler.xenforo]]
+url = "https://www.example.co.uk/forum/"
+""",
+"""
+[[crawler]]
+url = "https://www.example.co.uk/forum/"
+""",
+"",
+"2"
+))
+async def test_config(input_):
+    with patch('builtins.open', mock_open(read_data=input_)) as m:
+        conf = config()
+        x = conf.get_crawler_index("https://www.example.co.uk/forum/")
+        assert x == -1 or x == 0
+        assert conf.get_crawler_index("") == -1
+        assert conf.get_crawler_index(2) == -1
+        assert conf.get_crawler_index("www.example.co.uk/forum/") == -1
+        assert conf.get_crawler_index("https://www.example.co.uk/") == -1
+
+
+data = [
+        """[[crawler.xenforo]]
+        url = "https://www.28dayslater.co.uk/forum/"
+        subs = [   
+            ["example", "2023-02-08T17:48:08+00:00"]
+        ]""",
+    "",
+    "2"
+    """[[crawler.xenforo]]
+        url = "https://www.28dayslater.co.uk/forum/"
+        subs = [2]""",
+    """[[crawler.xenforo]]
+        url = "https://www.28dayslater.co.uk/forum/"
+        subs = [[2]]"""
+]
+
+@pytest.mark.parametrize(
+    "input_", data)
+async def test_config_time(mock, input_):
+    with open("tests/28dl_section.html", "r") as fp:
+            file_data = fp.read()
+    
+    mock.get(SECTION_URL, status=200, body=file_data)
+    with patch('builtins.open', mock_open(read_data=input_)) as m:
+
+        async with aiohttp.ClientSession() as session:
+            xen = xenforo(BASE_URL, session)
+            
+            if input_ == data[0]:
+                assert xen.get_config_time("example") == "2023-02-08T17:48:08+00:00"
+            else:
+                assert xen.get_config_time("example") == None
+            
+            input2 = ["example/", "", "bar", 2]
+            out = []
+            for x in input2:
+                assert xen.get_config_time(x) == None
+            
 #Always keep this at the end
 async def test_live():
     async with aiohttp.ClientSession() as session:

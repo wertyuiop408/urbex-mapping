@@ -60,11 +60,16 @@ class xenforo(spider):
             return None
 
         sub_index = conf.get_sub_index(subs[crawler_index], section)
+        if sub_index == -1:
+            return None
 
         subs = subs[crawler_index]["subs"]
         if not isinstance(subs, list):
             return None
 
+        if len(subs[sub_index]) < 2:
+            return None
+            
         return subs[sub_index][1]
 
     def write_config_time(self, section: str, time_: str) -> None:

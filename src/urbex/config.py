@@ -16,8 +16,12 @@ class config:
         return
 
     def load(self) -> None:
-        with open(self.FILE, mode="rt", encoding="utf-8") as f:
-            self.cfg: TOMLDocument = tomlkit.load(f)
+        try:
+            with open(self.FILE, mode="rt", encoding="utf-8") as f:
+                self.cfg: TOMLDocument = tomlkit.load(f)
+
+        except Exception:
+            pass
         return
 
     def save(self) -> None:
@@ -26,9 +30,12 @@ class config:
         return
 
     # get the index of the crawler in the config using the sites url. returns -1 if not found
-    def get_crawler_index(self, site: str, crawler: str = "xenforo"):
+    def get_crawler_index(self, site: str, crawler: str = "xenforo") -> int:
         self.load()
-        x = self.cfg["crawler"]
+        if not hasattr(self, "cfg"):
+            return -1
+
+        x = self.cfg.get("crawler")
         if not isinstance(x, dict):
             return -1
 
