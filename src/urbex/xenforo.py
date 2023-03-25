@@ -42,7 +42,7 @@ class xenforo(spider):
 
         for i, v in enumerate(subs):
             _url = self.base_url + subs[i][0] + self.suffix_url
-            self._add_url(_url, self.parse_section, nxt=True)
+            self._add_url(_url, partial(self.parse_section, nxt=True))
         return
 
     def get_config_time(self, section: str) -> Optional[str]:
@@ -69,7 +69,7 @@ class xenforo(spider):
 
         if len(subs[sub_index]) < 2:
             return None
-            
+
         return subs[sub_index][1]
 
     def write_config_time(self, section: str, time_: str) -> None:
