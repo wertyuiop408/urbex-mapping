@@ -1,9 +1,15 @@
+import sys
+
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 
-engine = create_engine("sqlite+pysqlite:///urbex.db")  # , echo=True)
+db_uri = "sqlite+pysqlite:///urbex.db"
+if "pytest" in sys.modules:
+    db_uri = "sqlite+pysqlite:///:memory:"
+
+engine = create_engine(db_uri)
 # use session_factory() to get a new Session
 _SessionFactory = sessionmaker(engine, future=True)
 
