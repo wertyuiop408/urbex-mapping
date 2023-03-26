@@ -16,7 +16,7 @@ psaw = "^0.1.0"
 Flask = "^2.2.2"
 hvac = "^0.11.2"
 tomlkit = "^0.11.4"
-SQLAlchemy = {extras = ["mypy"], version = "^1.4.46"}
+SQLAlchemy = "^2.0.7"
 aiohttp = "^3.8.3"
 lxml = "^4.9.2"
 sqlalchemy-stubs = "^0.4"
