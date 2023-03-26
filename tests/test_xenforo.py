@@ -2,13 +2,17 @@ import asyncio
 import builtins
 from functools import partial
 from unittest.mock import patch, mock_open
+
 from config import config
+from xenforo import xenforo
+from db_base import session_factory
+from db_tables import refs
 
 import pytest
 import aiohttp
 from aioresponses import aioresponses
 
-from xenforo import xenforo
+
 
 URL_ = "https://example.com"
 SECT_MAX_PAGES = 215
@@ -51,6 +55,21 @@ async def test_200_section(mock):
             assert x[0]["url"] == x[1]["url"]
             assert x[0]["date_post"] == x[1]["date_post"]
    
+
+async def test_db_section(mock):
+    with open("tests/28dl_section.html", "r") as fp:
+        file_data = fp.read()
+
+    mock.get(SECTION_URL, status=200, body=file_data)
+
+    async with aiohttp.ClientSession() as session:
+        xen = xenforo(BASE_URL, session)
+        #callback is needed, otherwise the connection is closed?
+        res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_section, nxt=False))
+        db_sess = session_factory()
+        db_count = db_sess.query(refs).count()
+        assert db_count == 10
+
 async def test_empty_page(mock):
     mock.get(SECTION_URL, status=200, body="<html>")
     async with aiohttp.ClientSession() as session:
