@@ -105,12 +105,18 @@ async def test_db_section(mock):
         file_data = fp.read()
 
     mock.get(SECTION_URL, status=200, body=file_data)
+    mock.get(SECTION_URL, status=200, body=file_data)
 
     async with aiohttp.ClientSession() as session:
         xen = xenforo(BASE_URL, session)
         # callback is needed, otherwise the connection is closed?
         res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_section, nxt=False))
         db_sess = session_factory()
+        db_count = db_sess.query(refs).count()
+        assert db_count == 10
+
+        #check for duplicate entries
+        await xen.get_url(SECTION_URL, partial(xen.parse_section, nxt=False))
         db_count = db_sess.query(refs).count()
         assert db_count == 10
 
