@@ -5,6 +5,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import UniqueConstraint
 from sqlalchemy import DDL
 from sqlalchemy import Text
+from sqlalchemy import text
 
 from db_base import Base, session_factory
 
@@ -72,11 +73,13 @@ class refs(Base):
 
 session = session_factory()
 session.execute(
-    """CREATE VIRTUAL TABLE IF NOT EXISTS tags_ft USING fts5(
+    text(
+        """CREATE VIRTUAL TABLE IF NOT EXISTS tags_ft USING fts5(
             content=tags,
             content_rowid=row_id,
             tag
         )"""
+    )
 )
 
 t1 = """CREATE TRIGGER IF NOT EXISTS tags_ai AFTER INSERT ON tags BEGIN
@@ -94,6 +97,6 @@ t3 = """CREATE TRIGGER IF NOT EXISTS tags_au AFTER UPDATE ON tags BEGIN
         INSERT INTO tags_ft(rowid, tag) VALUES (new.row_id, new.tag);
         END;
         """
-session.execute(t1)
-session.execute(t2)
-session.execute(t3)
+session.execute(text(t1))
+session.execute(text(t2))
+session.execute(text(t3))
