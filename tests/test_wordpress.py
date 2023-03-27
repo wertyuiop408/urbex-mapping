@@ -2,10 +2,12 @@ import asyncio
 import builtins
 from functools import partial
 from unittest.mock import patch, mock_open
+import re
 
 from wordpress import wordpress
 from db_base import session_factory
 from db_tables import refs
+from spider import TASKS
 
 import pytest
 import aiohttp
@@ -106,6 +108,26 @@ async def test_200_no_wpheader(mock):
         assert cb == None
 
 
+async def test_db_section(mock):
+    with open("tests/wp_posts.json", "r") as fp:
+        file_data = fp.read()
+
+    mock.get(POST_URL, status=200, body=file_data, headers={"X-WP-Total": "71"})
+    mock.get(POST_URL, status=200, body=file_data, headers={"X-WP-Total": "71"})
+    async with aiohttp.ClientSession() as session:
+        wp = wordpress(BASE_URL, session)
+        res, cb = await wp.get_url(POST_URL, partial(wp.parse, nxt=False))
+
+        db_sess = session_factory()
+        db_count = db_sess.query(refs).count()
+        assert db_count == 10
+
+        # check for duplicate entries
+        await wp.get_url(POST_URL, partial(wp.parse, nxt=False))
+        db_count = db_sess.query(refs).count()
+        assert db_count == 10
+
+
 async def test_empty_page(mock):
     mock.get(POST_URL, status=200, body="<html>", headers={"X-WP-Total": "10"})
     async with aiohttp.ClientSession() as session:
@@ -125,21 +147,18 @@ async def test_error_page(mock):
         assert cb == None
 
 
-async def test_db_section(mock):
+async def test_next(mock):
     with open("tests/wp_posts.json", "r") as fp:
         file_data = fp.read()
+    pattern = re.compile(
+        r"^https://www\.whateversleft\.co\.uk/wp-json/wp/v2/posts\?.*$"
+    )
+    mock.get(
+        pattern, status=200, body=file_data, headers={"X-WP-Total": "71"}, repeat=True
+    )
 
-    mock.get(POST_URL, status=200, body=file_data, headers={"X-WP-Total": "10"})
-    mock.get(POST_URL, status=200, body=file_data, headers={"X-WP-Total": "10"})
     async with aiohttp.ClientSession() as session:
         wp = wordpress(BASE_URL, session)
-        res, cb = await wp.get_url(POST_URL, partial(wp.parse, nxt=False))
-
-        db_sess = session_factory()
-        db_count = db_sess.query(refs).count()
-        assert db_count == 10
-
-        # check for duplicate entries
-        await wp.get_url(POST_URL, partial(wp.parse, nxt=False))
-        db_count = db_sess.query(refs).count()
-        assert db_count == 10
+        wp._add_url(POST_URL, partial(wp.parse, nxt=True))
+        while TASKS:
+            op = await asyncio.gather(*TASKS)
