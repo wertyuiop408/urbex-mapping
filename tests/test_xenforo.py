@@ -2,11 +2,13 @@ import asyncio
 import builtins
 from functools import partial
 from unittest.mock import patch, mock_open
+import re
 
 from config import config
 from xenforo import xenforo
 from db_base import session_factory
 from db_tables import refs
+from spider import TASKS
 
 import pytest
 import aiohttp
@@ -98,6 +100,7 @@ async def test_200_section(mock):
             assert x[0]["title"] == x[1]["title"]
             assert x[0]["url"] == x[1]["url"]
             assert x[0]["date_post"] == x[1]["date_post"]
+        assert xen.errors == 0
 
 
 async def test_db_section(mock):
@@ -115,10 +118,11 @@ async def test_db_section(mock):
         db_count = db_sess.query(refs).count()
         assert db_count == 10
 
-        #check for duplicate entries
+        # check for duplicate entries
         await xen.get_url(SECTION_URL, partial(xen.parse_section, nxt=False))
         db_count = db_sess.query(refs).count()
         assert db_count == 10
+        assert xen.errors == 0
 
 
 async def test_empty_page(mock):
@@ -127,6 +131,7 @@ async def test_empty_page(mock):
         xen = xenforo(BASE_URL, session)
         res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_section, nxt=False))
         assert cb == None
+        assert xen.errors == 1
 
 
 async def test_error_page(mock):
@@ -138,6 +143,7 @@ async def test_error_page(mock):
         xen = xenforo(BASE_URL, session)
         res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_section, nxt=False))
         assert cb == None
+        assert xen.errors == 1
 
 
 async def test_thread_page(mock):
@@ -149,6 +155,22 @@ async def test_thread_page(mock):
         xen = xenforo(BASE_URL, session)
         res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_section, nxt=False))
         assert cb == None
+
+
+async def test_next(mock):
+    with open("tests/28dl_thread.html", "r") as fp:
+        file_data = fp.read()
+    pattern = re.compile(
+        r"^https://www\.28dayslater.co.uk/forum/noteworthy-reports\.115/.*$"
+    )
+    mock.get(pattern, status=200, body=file_data, repeat=True)
+
+    async with aiohttp.ClientSession() as session:
+        xen = xenforo(BASE_URL, session)
+        xen._add_url(SECTION_URL, partial(xen.parse_section, nxt=True))
+        while TASKS:
+            op = await asyncio.gather(*TASKS)
+        assert xen.errors == 0
 
 
 @pytest.mark.parametrize(
@@ -227,3 +249,4 @@ async def test_live():
         res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_section, nxt=False))
         assert res.status == 200
         assert len(cb) == 11
+        assert xen.errors == 0

@@ -15,6 +15,7 @@ COUNTER = 0
 
 class spider(ABC):
     sess: ClientSession
+    errors: int = 0
 
     def _add_url(self, url_: str, callback=None) -> None:
         print(f"adding {url_}")
@@ -29,6 +30,7 @@ class spider(ABC):
                 awaited = await self.handle_callback(res, callback)
                 return (res, awaited)
         except Exception as e:
+            self.errors += 1
             print("error", url_)
             print(e)
             return (e, None)
@@ -36,14 +38,14 @@ class spider(ABC):
     async def handle_callback(self, res, callback=None):
         if callback == None:
             return
-        
+
         if callback:
             if not isinstance(callback, partial):
                 callback = partial(callback)
 
         part = partial(callback.func, res, *callback.args, **callback.keywords)
         return await part()
-        
+
     def save_to_db(self, data_arr: list[dict[str, Any]]) -> int:
         sql_stmnt = text(
             """INSERT OR IGNORE INTO refs(url, title, date_inserted, date_post) 
