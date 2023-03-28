@@ -95,6 +95,7 @@ async def test_200_posts(mock):
             assert x[0]["title"] == x[1]["title"]
             assert x[0]["url"] == x[1]["url"]
             assert x[0]["date_post"] == x[1]["date_post"]
+        assert wp.errors == 0
 
 
 async def test_200_no_wpheader(mock):
@@ -126,6 +127,7 @@ async def test_db_section(mock):
         await wp.get_url(POST_URL, partial(wp.parse, nxt=False))
         db_count = db_sess.query(refs).count()
         assert db_count == 10
+        assert wp.errors == 0
 
 
 async def test_empty_page(mock):
@@ -162,3 +164,4 @@ async def test_next(mock):
         wp._add_url(POST_URL, partial(wp.parse, nxt=True))
         while TASKS:
             op = await asyncio.gather(*TASKS)
+        assert wp.errors == 0
