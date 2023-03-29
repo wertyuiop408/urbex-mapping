@@ -39,7 +39,7 @@ class config:
         if not isinstance(x, dict):
             return -1
 
-        x = x[crawler]
+        x = x.get(crawler)
         if not isinstance(x, list):
             return -1
 
