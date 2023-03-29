@@ -6,6 +6,7 @@ from urllib.parse import urlparse, urljoin
 from aiohttp.client import ClientSession
 
 from db_tables import refs
+from config import config
 from spider import *
 
 
@@ -15,6 +16,26 @@ class wordpress(spider):
         self.crawl_times = dict()  # type: ignore
 
         self.base_url = url_.strip(" ").rstrip("/") + "/"
+
+    def get_config_time(self):
+        conf = config()
+        crawler_index = conf.get_crawler_index(self.base_url, "wordpress")
+
+        if crawler_index == -1:
+            return None
+
+        subs = conf.cfg["crawler"]
+        if not isinstance(subs, dict):
+            return None
+
+        subs = subs["wordpress"]
+        if not isinstance(subs, list):
+            return None
+
+        lc = subs[crawler_index]["lc"]
+        if not isinstance(lc, str):
+            return None
+        return lc
 
     async def parse(self, res, *cb1, **cb2):
         crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -43,6 +64,17 @@ class wordpress(spider):
             )
             ret_list.append(data.__dict__)
         self.save_to_db(ret_list)
+
+        # if the post is older than the last time we crawled, then don't bother crawling more
+        first_post_date = str(content[0].get("date"))
+        post_date = datetime.fromisoformat(first_post_date)
+        gct = self.get_config_time()
+
+        if gct != None:
+            config_date = datetime.fromisoformat(str(gct))
+            if post_date < config_date:
+                cb2["nxt"] = False
+                print("configs", cb2["nxt"])
 
         # generate next batch of section urls to crawl.
         if cb2.get("nxt"):
