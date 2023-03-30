@@ -74,7 +74,6 @@ class wordpress(spider):
             config_date = datetime.fromisoformat(str(gct))
             if post_date < config_date:
                 cb2["nxt"] = False
-                print("configs", cb2["nxt"])
 
         # generate next batch of section urls to crawl.
         if cb2.get("nxt"):

@@ -81,6 +81,7 @@ def mock():
 
 
 async def test_200_posts(mock):
+    # Test to make sure parsing correctly works and correct info is returned
     with open("tests/wp_posts.json", "r") as fp:
         file_data = fp.read()
 
@@ -99,6 +100,7 @@ async def test_200_posts(mock):
 
 
 async def test_200_no_wpheader(mock):
+    # Test to make sure parsing fails gracefully when there is no header for total posts
     with open("tests/wp_posts.json", "r") as fp:
         file_data = fp.read()
 
@@ -110,6 +112,7 @@ async def test_200_no_wpheader(mock):
 
 
 async def test_db_section(mock):
+    # Tests to ensure that data is entered into the database, and that duplicates are not entered.
     with open("tests/wp_posts.json", "r") as fp:
         file_data = fp.read()
 
@@ -131,6 +134,7 @@ async def test_db_section(mock):
 
 
 async def test_empty_page(mock):
+    # Test to ensure parsing fails graacefully when the page is clearly not wordpress
     mock.get(POST_URL, status=200, body="<html>", headers={"X-WP-Total": "10"})
     async with aiohttp.ClientSession() as session:
         wp = wordpress(BASE_URL, session)
@@ -139,10 +143,11 @@ async def test_empty_page(mock):
 
 
 async def test_error_page(mock):
+    # Test to ensure that parsing fails gracefully when wordpress throws an error
     with open("tests/wp_posts_error.json", "r") as fp:
         file_data = fp.read()
 
-    mock.get(POST_URL, status=400, body=file_data, headers={"X-WP-Total": "10"})
+    mock.get(POST_URL, status=400, body=file_data)
     async with aiohttp.ClientSession() as session:
         wp = wordpress(BASE_URL, session)
         res, cb = await wp.get_url(POST_URL, partial(wp.parse, nxt=False))
@@ -150,6 +155,7 @@ async def test_error_page(mock):
 
 
 async def test_next(mock):
+    # Test to ensure that parsing will paginate when asked to
     with open("tests/wp_posts.json", "r") as fp:
         file_data = fp.read()
     pattern = re.compile(
@@ -158,10 +164,64 @@ async def test_next(mock):
     mock.get(
         pattern, status=200, body=file_data, headers={"X-WP-Total": "71"}, repeat=True
     )
+    with patch("builtins.open", mock_open(read_data="")) as m:
+        async with aiohttp.ClientSession() as session:
+            wp = wordpress(BASE_URL, session)
+            wp._add_url(POST_URL, partial(wp.parse, nxt=True))
+            while TASKS:
+                op = await asyncio.gather(*TASKS)
+            assert wp.errors == 0
 
-    async with aiohttp.ClientSession() as session:
-        wp = wordpress(BASE_URL, session)
-        wp._add_url(POST_URL, partial(wp.parse, nxt=True))
-        while TASKS:
-            op = await asyncio.gather(*TASKS)
-        assert wp.errors == 0
+            # ceil of wp-total/10
+            assert wp.completed_count == 8
+
+
+data = [
+    """[[crawler.wordpress]]
+        url = "https://www.whateversleft.co.uk/"
+        lc = "2023-02-08T17:48:08"
+    """,
+    "",
+    None,
+    "2",
+    """[[crawler.wordpress]]
+        url = "https://www.whateversleft.co.uk"
+    """,
+    """[[crawler.wordpress]]
+        url = "https://www.whateversleft.co.uk"
+        lc = [[2]]""",
+    """[[crawler.xenforo]]
+        url = "https://www.whateversleft.co.uk"
+      """,
+]
+
+
+@pytest.mark.parametrize("input_", data)
+async def test_config_time(mock, input_):
+    # Test multiple configs and ensure get_config_time fails gracefully or returns a string
+    with open("tests/wp_posts.json", "r") as fp:
+        file_data = fp.read()
+
+    mock.get(POST_URL, status=200, body=file_data, headers={"X-WP-Total": "71"})
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
+        async with aiohttp.ClientSession() as session:
+            wp = wordpress(BASE_URL, session)
+
+            if input_ == data[0]:
+                assert wp.get_config_time() == "2023-02-08T17:48:08"
+            else:
+                assert wp.get_config_time() == None
+
+
+async def test_config(mock):
+    # Test to ensure logic is being followed, cancel pagination if post are older than last scan
+    input_ = data[0]
+    with open("tests/wp_posts.json", "r") as fp:
+        file_data = fp.read()
+
+    mock.get(POST_URL, status=200, body=file_data, headers={"X-WP-Total": "71"})
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
+        async with aiohttp.ClientSession() as session:
+            wp = wordpress(BASE_URL, session)
+            res, cb = await wp.get_url(POST_URL, partial(wp.parse, nxt=True))
+            assert wp.completed_count == 1

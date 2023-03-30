@@ -10,12 +10,13 @@ from aiohttp.client import ClientSession
 from typing import Callable, Any
 
 TASKS = set()
-COUNTER = 0
+
 
 
 class spider(ABC):
     sess: ClientSession
     errors: int = 0
+    completed_count = 0
 
     def _add_url(self, url_: str, callback=None) -> None:
         print(f"adding {url_}")
@@ -23,14 +24,17 @@ class spider(ABC):
         TASKS.add(tt)
         tt.add_done_callback(TASKS.discard)
 
+
     async def get_url(self, url_: str, callback=None):
         print(f"getting {url_}")
         try:
             async with self.sess.get(url_) as res:
                 awaited = await self.handle_callback(res, callback)
+                self.completed_count += 1
                 return (res, awaited)
         except Exception as e:
             self.errors += 1
+            self.completed_count += 1
             print("error", url_)
             print(e)
             return (e, None)
