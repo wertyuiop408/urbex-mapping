@@ -119,7 +119,9 @@ async def test_db_section(mock):
     with open("tests/wp_posts.json", "r") as fp:
         file_data = fp.read()
 
-    mock.get(POST_URL, status=200, body=file_data, headers={"X-WP-Total": "71"}, repeat=True)
+    mock.get(
+        POST_URL, status=200, body=file_data, headers={"X-WP-Total": "71"}, repeat=True
+    )
     with patch("builtins.open", mock_open(read_data="")) as m:
         async with aiohttp.ClientSession() as session:
             wp = wordpress(BASE_URL, session)
@@ -231,7 +233,9 @@ async def test_config(mock):
             assert wp.completed_count == 1
             mock.assert_called_once()
 
+
 async def test_malformed_config_date(mock):
+    # Test to ensure a malformed date in the config causes no issues
     input_ = """[[crawler.wordpress]]
         url = "https://www.whateversleft.co.uk/"
         lc = "2023-02-08T17:482"
