@@ -35,6 +35,11 @@ class wordpress(spider):
         lc = subs[crawler_index]["lc"]
         if not isinstance(lc, str):
             return None
+
+        try:
+            lc = datetime.fromisoformat(str(lc))
+        except Exception:
+            lc = None
         return lc
 
     async def parse(self, res, *cb1, **cb2):
@@ -66,14 +71,13 @@ class wordpress(spider):
         self.save_to_db(ret_list)
 
         # if the post is older than the last time we crawled, then don't bother crawling more
-        #if nxt is set to False, then this code is redundant
+        # if nxt is set to False, then this code is redundant
         first_post_date = str(content[0].get("date"))
         post_date = datetime.fromisoformat(first_post_date)
         gct = self.get_config_time()
 
         if gct != None:
-            config_date = datetime.fromisoformat(str(gct))
-            if post_date < config_date:
+            if post_date < gct:
                 cb2["nxt"] = False
 
         # generate next batch of section urls to crawl.

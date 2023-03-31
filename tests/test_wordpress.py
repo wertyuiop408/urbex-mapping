@@ -1,5 +1,6 @@
 import asyncio
 import builtins
+from datetime import datetime
 from functools import partial
 from unittest.mock import patch, mock_open
 import re
@@ -206,7 +207,9 @@ async def test_config_time(mock, input_, posts_json):
             wp = wordpress(BASE_URL, session)
 
             if input_ == data[0]:
-                assert wp.get_config_time() == "2023-02-08T17:48:08"
+                tmp = wp.get_config_time()
+                assert isinstance(tmp, datetime)
+                assert tmp == datetime(2023, 2, 8, 17, 48, 8)
             else:
                 assert wp.get_config_time() == None
 
