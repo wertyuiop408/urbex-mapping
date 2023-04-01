@@ -239,3 +239,14 @@ async def test_malformed_config_date(mock, posts_json):
             wp = wordpress(BASE_URL, session)
             res, cb = await wp.get_url(POST_URL, partial(wp.parse, nxt=False))
             assert cb != None
+
+
+async def test_save_config():
+    input_ = """[[crawler.wordpress]]
+        url = "https://www.whateversleft.co.uk/"
+        lc = "2023-02-08T17:48:08"
+    """
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
+        async with aiohttp.ClientSession() as session:
+            wp = wordpress(BASE_URL, session)
+            wp.write_config_time("2023-02-08T17:48:00")
