@@ -1,5 +1,7 @@
 import asyncio
 import builtins
+from datetime import datetime
+from datetime import timezone
 from functools import partial
 from unittest.mock import patch, mock_open
 import re
@@ -232,7 +234,9 @@ async def test_config_time(mock, input_):
             xen = xenforo(BASE_URL, session)
 
             if input_ == data[0]:
-                assert xen.get_config_time("example") == "2023-02-08T17:48:08+00:00"
+                tmp = xen.get_config_time("example")
+                assert isinstance(tmp, datetime)
+                assert tmp == datetime(2023, 2, 8, 17, 48, 8).astimezone(timezone.utc)
             else:
                 assert xen.get_config_time("example") == None
 

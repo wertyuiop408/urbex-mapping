@@ -70,7 +70,11 @@ class xenforo(spider):
         if len(subs[sub_index]) < 2:
             return None
 
-        return subs[sub_index][1]
+        try:
+            lc = datetime.fromisoformat(str(subs[sub_index][1])).astimezone(timezone.utc)
+        except Exception:
+            lc = None
+        return lc
 
     def write_config_time(self, section: str, time_: str) -> None:
         conf = config()
@@ -141,8 +145,7 @@ class xenforo(spider):
 
         # is it older
         if gct != None:
-            config_date = datetime.fromisoformat(str(gct)).astimezone(timezone.utc)
-            if post_date < config_date:
+            if post_date < gct:
                 self.write_config_time(section + "/", self.crawl_times[section])
                 cb2["nxt"] = False
 
