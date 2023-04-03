@@ -257,3 +257,6 @@ async def test_live():
         assert res.status == 200
         assert len(cb) == 11
         assert xen.errors == 0
+        db_sess = session_factory()
+        db_count = db_sess.query(refs).count()
+        assert db_count == 11
