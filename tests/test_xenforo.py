@@ -251,9 +251,9 @@ async def test_config_time(mock, input_):
             else:
                 assert xen.get_config_time("example") == None
 
-            input2 = ["example/", "", "bar", 2]
+            section_names = ["example/", "", "bar", 2]
             out = []
-            for x in input2:
+            for x in section_names:
                 assert xen.get_config_time(x) == None
 
 
