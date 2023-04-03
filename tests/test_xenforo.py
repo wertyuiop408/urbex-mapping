@@ -94,7 +94,9 @@ async def test_200_section(mock):
         async with aiohttp.ClientSession() as session:
             xen = xenforo(BASE_URL, session)
             # callback is needed, otherwise the connection is closed?
-            res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_section, nxt=False))
+            res, cb = await xen.get_url(
+                SECTION_URL, partial(xen.parse_section, nxt=False)
+            )
 
             assert len(cb) == 10
 
@@ -115,7 +117,9 @@ async def test_db_section(mock):
         async with aiohttp.ClientSession() as session:
             xen = xenforo(BASE_URL, session)
             # callback is needed, otherwise the connection is closed?
-            res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_section, nxt=False))
+            res, cb = await xen.get_url(
+                SECTION_URL, partial(xen.parse_section, nxt=False)
+            )
             db_sess = session_factory()
             db_count = db_sess.query(refs).count()
             assert db_count == 10
@@ -161,7 +165,7 @@ async def test_thread_page(mock):
 
 
 async def _test_next(mock):
-    #DO NOT RUN UNTIL FIXED
+    # DO NOT RUN UNTIL FIXED
     # this test will get stuck in a loop as the parsing takes the page number from the html. which we never change
     with open("tests/28dl_section.html", "r") as fp:
         file_data = fp.read()
@@ -175,7 +179,7 @@ async def _test_next(mock):
             xen._add_url(SECTION_URL, partial(xen.parse_section, nxt=True))
             while TASKS:
                 op = await asyncio.gather(*TASKS)
-            #assert xen.errors == 0
+            # assert xen.errors == 0
 
 
 @pytest.mark.parametrize(
@@ -224,9 +228,9 @@ data = [
     """[[crawler.xenforo]]
         url = "https://www.28dayslater.co.uk/forum/"
         subs = [[2]]""",
-        """[[crawler.xenforo]]
+    """[[crawler.xenforo]]
         url = "https://www.28dayslater.co.uk/forum/
-        """
+        """,
 ]
 
 
@@ -258,7 +262,9 @@ async def test_live():
     with patch("builtins.open", mock_open(read_data="")) as m:
         async with aiohttp.ClientSession() as session:
             xen = xenforo(BASE_URL, session)
-            res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_section, nxt=False))
+            res, cb = await xen.get_url(
+                SECTION_URL, partial(xen.parse_section, nxt=False)
+            )
             assert res.status == 200
             assert len(cb) == 11
             assert xen.errors == 0
