@@ -157,6 +157,7 @@ async def test_thread_page(mock):
         xen = xenforo(BASE_URL, session)
         res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_section, nxt=False))
         assert cb == None
+        assert xen.errors == 1
 
 
 async def _test_next(mock):
