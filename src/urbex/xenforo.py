@@ -113,6 +113,7 @@ class xenforo(spider):
         section = _url_path_split[1]
         if self.crawl_times.get(section) == None:
             self.crawl_times[section] = crawl_date
+            #write the config here
 
         txt = await res.text()
         soup = BeautifulSoup(txt, "lxml")
@@ -146,17 +147,18 @@ class xenforo(spider):
         # is it older
         if gct != None:
             if post_date < gct:
-                self.write_config_time(section + "/", self.crawl_times[section])
+                #self.write_config_time(section + "/", self.crawl_times[section])
                 cb2["nxt"] = False
 
         # generate next batch of section urls to crawl.
         url_limit = getattr(self.sess._connector, "limit_per_host", 5)
-        if cb2.get("nxt"):
-            for i in range(1, url_limit + 1):
+        if url_limit == 0:
+            url_limit = 5
 
+        if cb2.get("nxt"):
+            for i in range(0, url_limit):
                 # if there are no more pages in section, then stop
-                if curr_page + i > max_pages:
-                    self.write_config_time(section + "/", self.crawl_times[section])
+                if (curr_page + i + 1) > max_pages:
                     break
 
                 _url = (
@@ -169,9 +171,9 @@ class xenforo(spider):
 
                 # set the last one of each batch
                 nxt = False
-                if i == url_limit:
+                if i + 1 == url_limit:
                     nxt = True
-                self._add_url(_url, self.parse_section, nxt=nxt)
+                self._add_url(_url, partial(self.parse_section, nxt=nxt))
 
         ret_list = list()
         for x in list_of_threads:
