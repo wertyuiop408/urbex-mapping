@@ -262,7 +262,11 @@ async def test_config(mock):
     with open("tests/28dl_section.html", "r") as fp:
         file_data = fp.read()
 
-    input_ = data[0]
+    input_ = """[[crawler.xenforo]]
+        url = "https://www.28dayslater.co.uk/forum/"
+        subs = [   
+            ["noteworthy-reports.115/", "2023-02-08T17:48:08+00:00"]
+        ]"""
 
     mock.get(PATTERN, status=200, body=file_data, repeat=True)
     with patch("builtins.open", mock_open(read_data=input_)) as m:

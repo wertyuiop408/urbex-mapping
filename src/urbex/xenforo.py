@@ -149,13 +149,13 @@ class xenforo(spider):
             if post_date < gct:
                 #self.write_config_time(section + "/", self.crawl_times[section])
                 cb2["nxt"] = False
-
-        # generate next batch of section urls to crawl.
-        url_limit = getattr(self.sess._connector, "limit_per_host", 5)
-        if url_limit == 0:
-            url_limit = 5
-
+        
         if cb2.get("nxt"):
+
+            # generate next batch of section urls to crawl.
+            url_limit = getattr(self.sess._connector, "limit_per_host", 5)
+            if url_limit == 0:
+                url_limit = 5
             for i in range(0, url_limit):
                 # if there are no more pages in section, then stop
                 if (curr_page + i + 1) > max_pages:
