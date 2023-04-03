@@ -20,6 +20,9 @@ from aioresponses import aioresponses
 URL_ = "https://example.com"
 SECT_MAX_PAGES = 215
 SECT_DATA_LEN = 10
+PATTERN = re.compile(
+    r"^https://www\.28dayslater.co.uk/forum/noteworthy-reports\.115/.*$"
+)
 SECTION_URL = "https://www.28dayslater.co.uk/forum/noteworthy-reports.115/"
 THREAD_URL = (
     "https://www.28dayslater.co.uk/threads/fryars-estate-laird-end-dec-21.133581/"
@@ -169,10 +172,8 @@ async def _test_next(mock):
     # this test will get stuck in a loop as the parsing takes the page number from the html. which we never change
     with open("tests/28dl_section.html", "r") as fp:
         file_data = fp.read()
-    pattern = re.compile(
-        r"^https://www\.28dayslater.co.uk/forum/noteworthy-reports\.115/.*$"
-    )
-    mock.get(pattern, status=200, body=file_data, repeat=True)
+
+    mock.get(PATTERN, status=200, body=file_data, repeat=True)
     with patch("builtins.open", mock_open(read_data="")) as m:
         async with aiohttp.ClientSession() as session:
             xen = xenforo(BASE_URL, session)
@@ -255,6 +256,25 @@ async def test_config_time(mock, input_):
             out = []
             for x in section_names:
                 assert xen.get_config_time(x) == None
+
+
+async def test_config(mock):
+    with open("tests/28dl_section.html", "r") as fp:
+        file_data = fp.read()
+
+    input_ = data[0]
+
+    mock.get(PATTERN, status=200, body=file_data, repeat=True)
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
+        async with aiohttp.ClientSession() as session:
+            xen = xenforo(BASE_URL, session)
+            res, cb = await xen.get_url(
+                SECTION_URL, partial(xen.parse_section, nxt=True)
+            )
+
+            # correct way to detect no extra calls are made
+            assert len(TASKS) == 0
+            mock.assert_called_once()
 
 
 # Always keep this at the end
