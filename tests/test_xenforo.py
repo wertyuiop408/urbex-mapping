@@ -287,9 +287,9 @@ async def test_malformed_config_date(mock):
     input_ = """[[crawler.xenforo]]
     url = "https://www.28dayslater.co.uk/forum/"
     subs = [   
-        ["example", "2023-02-08T17:48:111+00:00"]
+        ["noteworthy-reports.115/", "2023-02-08T17:48:111"]
     ]"""
-
+    mock.get(PATTERN, status=200, body=file_data)
     with patch("builtins.open", mock_open(read_data=input_)) as m:
         async with aiohttp.ClientSession() as session:
             xen = xenforo(BASE_URL, session)
