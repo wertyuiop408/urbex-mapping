@@ -277,6 +277,24 @@ async def test_config(mock):
             mock.assert_called_once()
 
 
+async def test_malformed_config_date(mock):
+    with open("tests/28dl_section.html", "r") as fp:
+        file_data = fp.read()
+    input_ = """[[crawler.xenforo]]
+    url = "https://www.28dayslater.co.uk/forum/"
+    subs = [   
+        ["example", "2023-02-08T17:48:111+00:00"]
+    ]"""
+
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
+        async with aiohttp.ClientSession() as session:
+            xen = xenforo(BASE_URL, session)
+            res, cb = await xen.get_url(
+                SECTION_URL, partial(xen.parse_section, nxt=False)
+            )
+            assert cb != None
+
+
 # Always keep this at the end
 async def test_live():
     with patch("builtins.open", mock_open(read_data="")) as m:
