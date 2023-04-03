@@ -216,6 +216,7 @@ data = [
             ["example", "2023-02-08T17:48:08+00:00"]
         ]""",
     "",
+    None,
     "2"
     """[[crawler.xenforo]]
         url = "https://www.28dayslater.co.uk/forum/"
@@ -223,6 +224,9 @@ data = [
     """[[crawler.xenforo]]
         url = "https://www.28dayslater.co.uk/forum/"
         subs = [[2]]""",
+        """[[crawler.xenforo]]
+        url = "https://www.28dayslater.co.uk/forum/
+        """
 ]
 
 

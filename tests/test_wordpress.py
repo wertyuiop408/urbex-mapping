@@ -191,10 +191,7 @@ data = [
     """,
     """[[crawler.wordpress]]
         url = "https://www.whateversleft.co.uk"
-        lc = [[2]]""",
-    """[[crawler.xenforo]]
-        url = "https://www.whateversleft.co.uk"
-      """,
+        lc = [[2]]"""
 ]
 
 
