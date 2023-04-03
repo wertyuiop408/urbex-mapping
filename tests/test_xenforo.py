@@ -198,7 +198,7 @@ url = "https://www.example.co.uk/forum/"
         "2",
     ),
 )
-async def test_config(input_):
+async def test_get_crawler_index(input_):
     with patch("builtins.open", mock_open(read_data=input_)) as m:
         conf = config()
         x = conf.get_crawler_index("https://www.example.co.uk/forum/")
