@@ -89,11 +89,14 @@ def mock():
         yield m
 
 
-async def test_200_section(mock):
+@pytest.fixture(scope="session")
+def section_html():
     with open("tests/28dl_section.html", "r") as fp:
-        file_data = fp.read()
+        return fp.read()
 
-    mock.get(SECTION_URL, status=200, body=file_data)
+
+async def test_200_section(mock, section_html):
+    mock.get(SECTION_URL, status=200, body=section_html)
     with patch("builtins.open", mock_open(read_data="")) as m:
         async with aiohttp.ClientSession() as session:
             xen = xenforo(BASE_URL, session)
@@ -111,12 +114,8 @@ async def test_200_section(mock):
             assert xen.errors == 0
 
 
-async def test_db_section(mock):
-    with open("tests/28dl_section.html", "r") as fp:
-        file_data = fp.read()
-
-    mock.get(SECTION_URL, status=200, body=file_data)
-    mock.get(SECTION_URL, status=200, body=file_data)
+async def test_db_section(mock, section_html):
+    mock.get(SECTION_URL, status=200, body=section_html, repeat=True)
     with patch("builtins.open", mock_open(read_data="")) as m:
         async with aiohttp.ClientSession() as session:
             xen = xenforo(BASE_URL, session)
@@ -168,13 +167,11 @@ async def test_thread_page(mock):
         assert xen.errors == 1
 
 
-async def _test_next(mock):
+async def _test_next(mock, section_html):
     # DO NOT RUN UNTIL FIXED
     # this test will get stuck in a loop as the parsing takes the page number from the html. which we never change
-    with open("tests/28dl_section.html", "r") as fp:
-        file_data = fp.read()
 
-    mock.get(PATTERN, status=200, body=file_data, repeat=True)
+    mock.get(PATTERN, status=200, body=section_html, repeat=True)
     with patch("builtins.open", mock_open(read_data="")) as m:
         async with aiohttp.ClientSession() as session:
             xen = xenforo(BASE_URL, session)
@@ -237,11 +234,8 @@ data = [
 
 
 @pytest.mark.parametrize("input_", data)
-async def test_config_time(mock, input_):
-    with open("tests/28dl_section.html", "r") as fp:
-        file_data = fp.read()
-
-    mock.get(SECTION_URL, status=200, body=file_data)
+async def test_config_time(mock, input_, section_html):
+    mock.get(SECTION_URL, status=200, body=section_html)
     with patch("builtins.open", mock_open(read_data=input_)) as m:
         async with aiohttp.ClientSession() as session:
             xen = xenforo(BASE_URL, session)
@@ -259,17 +253,14 @@ async def test_config_time(mock, input_):
                 assert xen.get_config_time(x) == None
 
 
-async def test_config(mock):
-    with open("tests/28dl_section.html", "r") as fp:
-        file_data = fp.read()
-
+async def test_config(mock, section_html):
     input_ = """[[crawler.xenforo]]
         url = "https://www.28dayslater.co.uk/forum/"
         subs = [   
             ["noteworthy-reports.115/", "2023-02-08T17:48:08+00:00"]
         ]"""
 
-    mock.get(PATTERN, status=200, body=file_data, repeat=True)
+    mock.get(PATTERN, status=200, body=section_html, repeat=True)
     with patch("builtins.open", mock_open(read_data=input_)) as m:
         async with aiohttp.ClientSession() as session:
             xen = xenforo(BASE_URL, session)
@@ -282,15 +273,13 @@ async def test_config(mock):
             mock.assert_called_once()
 
 
-async def test_malformed_config_date(mock):
-    with open("tests/28dl_section.html", "r") as fp:
-        file_data = fp.read()
+async def test_malformed_config_date(mock, section_html):
     input_ = """[[crawler.xenforo]]
     url = "https://www.28dayslater.co.uk/forum/"
     subs = [   
         ["noteworthy-reports.115/", "2023-02-08T17:48:111"]
     ]"""
-    mock.get(PATTERN, status=200, body=file_data)
+    mock.get(PATTERN, status=200, body=section_html)
     with patch("builtins.open", mock_open(read_data=input_)) as m:
         async with aiohttp.ClientSession() as session:
             xen = xenforo(BASE_URL, session)
