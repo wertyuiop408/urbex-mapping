@@ -4,6 +4,7 @@ from datetime import datetime
 from datetime import timezone
 from functools import partial
 from unittest.mock import patch, mock_open
+from sqlalchemy import text
 import re
 
 from config import config
@@ -301,6 +302,8 @@ async def test_malformed_config_date(mock):
 
 # Always keep this at the end
 async def test_live():
+    db_sess = session_factory()
+    db_sess.execute(text("DELETE FROM refs"))
     with patch("builtins.open", mock_open(read_data="")) as m:
         async with aiohttp.ClientSession() as session:
             xen = xenforo(BASE_URL, session)
@@ -310,6 +313,6 @@ async def test_live():
             assert res.status == 200
             assert len(cb) == 11
             assert xen.errors == 0
-            db_sess = session_factory()
+
             db_count = db_sess.query(refs).count()
             assert db_count == 11
