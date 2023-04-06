@@ -94,21 +94,23 @@ async def test_except(mock):
 @pytest.mark.parametrize(
     "input_",
     (
-        """[crawler]
-[[crawler.xenforo]]
-site = "example"
-url = "https://www.example.co.uk/forum/"
-""",
         """
-[[crawler.xenforo]]
-url = "https://www.example.co.uk/forum/"
-""",
+        [crawler]
+            [[crawler.xenforo]]
+                site = "example"
+                url = "https://www.example.co.uk/forum/"
+        """,
         """
-[[crawler]]
-url = "https://www.example.co.uk/forum/"
-""",
+        [[crawler.xenforo]]
+            url = "https://www.example.co.uk/forum/"
+        """,
+        """
+        [[crawler]]
+            url = "https://www.example.co.uk/forum/"
+        """,
         "",
         "2",
+        None,
     ),
 )
 async def test_get_crawler_index(input_):
