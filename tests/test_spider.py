@@ -98,15 +98,15 @@ async def test_except(mock):
         [crawler]
             [[crawler.xenforo]]
                 site = "example"
-                url = "https://www.example.co.uk/forum/"
+                url = "https://www.example.co.uk/"
         """,
         """
         [[crawler.xenforo]]
-            url = "https://www.example.co.uk/forum/"
+            url = "https://www.example.co.uk/"
         """,
         """
         [[crawler]]
-            url = "https://www.example.co.uk/forum/"
+            url = "https://www.example.co.uk/"
         """,
         "",
         "2",
@@ -116,9 +116,9 @@ async def test_except(mock):
 async def test_get_crawler_index(input_):
     with patch("builtins.open", mock_open(read_data=input_)) as m:
         conf = config()
-        x = conf.get_crawler_index("https://www.example.co.uk/forum/")
+        x = conf.get_crawler_index("https://www.example.co.uk/")
         assert x == -1 or x == 0
         assert conf.get_crawler_index("") == -1
         assert conf.get_crawler_index(2) == -1
-        assert conf.get_crawler_index("www.example.co.uk/forum/") == -1
-        assert conf.get_crawler_index("https://www.example.co.uk/") == -1
+        assert conf.get_crawler_index("www.example.co.uk/") == -1
+        assert conf.get_crawler_index("https://www.example.co.uk") == -1
