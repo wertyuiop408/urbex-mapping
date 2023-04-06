@@ -1,11 +1,13 @@
-from functools import partial
 import asyncio
+from functools import partial
+from unittest.mock import patch, mock_open
 
 import pytest
 import aiohttp
 from aiohttp.http_exceptions import HttpProcessingError
 from aioresponses import aioresponses
 
+from config import config
 from spider import spider
 
 URL_ = "https://example.com"
@@ -87,3 +89,34 @@ async def test_except(mock):
         y = await x.get_url(URL_)
         # maybe have an status for the call? S_Status=OK?
         assert y.status == 404
+
+
+@pytest.mark.parametrize(
+    "input_",
+    (
+        """[crawler]
+[[crawler.xenforo]]
+site = "example"
+url = "https://www.example.co.uk/forum/"
+""",
+        """
+[[crawler.xenforo]]
+url = "https://www.example.co.uk/forum/"
+""",
+        """
+[[crawler]]
+url = "https://www.example.co.uk/forum/"
+""",
+        "",
+        "2",
+    ),
+)
+async def test_get_crawler_index(input_):
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
+        conf = config()
+        x = conf.get_crawler_index("https://www.example.co.uk/forum/")
+        assert x == -1 or x == 0
+        assert conf.get_crawler_index("") == -1
+        assert conf.get_crawler_index(2) == -1
+        assert conf.get_crawler_index("www.example.co.uk/forum/") == -1
+        assert conf.get_crawler_index("https://www.example.co.uk/") == -1

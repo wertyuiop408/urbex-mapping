@@ -7,7 +7,6 @@ from unittest.mock import patch, mock_open
 from sqlalchemy import text
 import re
 
-from config import config
 from xenforo import xenforo
 from db_base import session_factory
 from db_tables import refs
@@ -179,37 +178,6 @@ async def _test_next(mock, section_html):
             while TASKS:
                 op = await asyncio.gather(*TASKS)
             # assert xen.errors == 0
-
-
-@pytest.mark.parametrize(
-    "input_",
-    (
-        """[crawler]
-[[crawler.xenforo]]
-site = "example"
-url = "https://www.example.co.uk/forum/"
-""",
-        """
-[[crawler.xenforo]]
-url = "https://www.example.co.uk/forum/"
-""",
-        """
-[[crawler]]
-url = "https://www.example.co.uk/forum/"
-""",
-        "",
-        "2",
-    ),
-)
-async def test_get_crawler_index(input_):
-    with patch("builtins.open", mock_open(read_data=input_)) as m:
-        conf = config()
-        x = conf.get_crawler_index("https://www.example.co.uk/forum/")
-        assert x == -1 or x == 0
-        assert conf.get_crawler_index("") == -1
-        assert conf.get_crawler_index(2) == -1
-        assert conf.get_crawler_index("www.example.co.uk/forum/") == -1
-        assert conf.get_crawler_index("https://www.example.co.uk/") == -1
 
 
 data = [
