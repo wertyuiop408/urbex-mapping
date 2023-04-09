@@ -186,6 +186,16 @@ data = [
         subs = [   
             ["example", "2023-02-08T17:48:08+00:00"]
         ]""",
+    """[[crawler.xenforo]]
+        url = "https://www.28dayslater.co.uk/forum/"
+        subs = [   
+            ["example", "2023-02-08T17:48:08"]
+        ]""",
+    """[[crawler.xenforo]]
+        url = "https://www.28dayslater.co.uk/forum/"
+        subs = [   
+            ["example", "2023-02-08T17:48:08+0100"]
+        ]""",
     "",
     None,
     "2"
@@ -212,6 +222,11 @@ async def test_config_time(mock, input_, section_html):
                 tmp = xen.get_config_time("example")
                 assert isinstance(tmp, datetime)
                 assert tmp == datetime(2023, 2, 8, 17, 48, 8).astimezone(timezone.utc)
+
+            elif input_ == data[1]:
+                tmp = xen.get_config_time("example")
+                assert isinstance(tmp, datetime)
+                datetime(2023, 2, 8, 17, 48, 8).astimezone(timezone.utc)
             else:
                 assert xen.get_config_time("example") == None
 
