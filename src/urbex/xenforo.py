@@ -22,7 +22,7 @@ class xenforo(spider):
         self.crawl_times = dict()  # type: ignore
 
         self.base_url = url_.strip(" ").rstrip("/") + "/"
-        #self.crawl()
+        # self.crawl()
 
     def crawl(self) -> None:
         conf = config()
@@ -71,7 +71,9 @@ class xenforo(spider):
             return None
 
         try:
-            lc = datetime.fromisoformat(str(subs[sub_index][1])).astimezone(timezone.utc)
+            lc = datetime.fromisoformat(str(subs[sub_index][1])).astimezone(
+                timezone.utc
+            )
         except Exception:
             lc = None
         return lc
@@ -111,9 +113,6 @@ class xenforo(spider):
             return
 
         section = _url_path_split[1]
-        if self.crawl_times.get(section) == None:
-            self.crawl_times[section] = crawl_date
-            #write the config here
 
         txt = await res.text()
         soup = BeautifulSoup(txt, "lxml")
@@ -136,44 +135,6 @@ class xenforo(spider):
         if not isinstance(first_post_date2, Tag):
             return
         first_post_date = str(first_post_date2.get("datetime"))
-
-        # cheesy hack for timezone fix to ISO8601
-        if first_post_date[-5] == "+":
-            first_post_date = first_post_date[:-2] + ":" + first_post_date[-2:]
-
-        post_date = datetime.fromisoformat(first_post_date)
-        gct = self.get_config_time(section + "/")
-
-        # is it older
-        if gct != None:
-            if post_date < gct:
-                #self.write_config_time(section + "/", self.crawl_times[section])
-                cb2["nxt"] = False
-        
-        if cb2.get("nxt"):
-
-            # generate next batch of section urls to crawl.
-            url_limit = getattr(self.sess._connector, "limit_per_host", 5)
-            if url_limit == 0:
-                url_limit = 5
-            for i in range(0, url_limit):
-                # if there are no more pages in section, then stop
-                if (curr_page + i + 1) > max_pages:
-                    break
-
-                _url = (
-                    self.base_url
-                    + section
-                    + "/page-"
-                    + str(curr_page + i)
-                    + self.suffix_url
-                )
-
-                # set the last one of each batch
-                nxt = False
-                if i + 1 == url_limit:
-                    nxt = True
-                self._add_url(_url, partial(self.parse_section, nxt=nxt))
 
         ret_list = list()
         for x in list_of_threads:
@@ -209,4 +170,46 @@ class xenforo(spider):
             ret_list.append(data.__dict__)
         self.save_to_db(ret_list)
 
+        if cb2.get("nxt"):
+            self.next_urls(section, curr_page, max_pages, first_post_date, crawl_date)
         return ret_list
+
+    def next_urls(self, section, page_no, max_pages, first_post_date, crawl_date):
+        # cheesy hack for timezone fix to ISO8601
+        if first_post_date[-5] == "+":
+            first_post_date = first_post_date[:-2] + ":" + first_post_date[-2:]
+
+        post_date = datetime.fromisoformat(first_post_date)
+
+        if page_no == 1:
+            self.crawl_times[section] = crawl_date
+
+        gct = self.get_config_time(section + "/")
+
+        # if the config is newer than the post
+        if gct != None and gct > post_date:
+            self.write_config_time(section + "/", self.crawl_times[section])
+            return
+
+        # generate next batch of section urls to crawl.
+        url_limit = getattr(self.sess._connector, "limit_per_host", 5)
+        if url_limit == 0:
+            url_limit = 5
+        for i in range(0, url_limit):
+            # if there are no more pages in section, then stop
+            if (page_no + i) > max_pages:
+                # write?
+                self.write_config_time(section + "/", self.crawl_times[section])
+                break
+
+            _url = (
+                self.base_url + section + "/page-" + str(page_no + i) + self.suffix_url
+            )
+
+            # set the last one of each batch
+            nxt = False
+            if i + 1 == url_limit:
+                nxt = True
+            self._add_url(_url, partial(self.parse_section, nxt=nxt))
+
+        return

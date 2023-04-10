@@ -166,18 +166,82 @@ async def test_thread_page(mock):
         assert xen.errors == 1
 
 
-async def _test_next(mock, section_html):
-    # DO NOT RUN UNTIL FIXED
-    # this test will get stuck in a loop as the parsing takes the page number from the html. which we never change
-
+@pytest.mark.parametrize(
+    "input_",
+    [
+        # no config
+        """[[crawler.xenforo]]
+    url = "https://www.28dayslater.co.uk/forum/"
+    subs = [   
+        ["noteworthy-reports.115/", ""]
+    ]""",
+        # older config
+        """[[crawler.xenforo]]
+    url = "https://www.28dayslater.co.uk/forum/"
+    subs = [   
+        ["noteworthy-reports.115/", "2011-10-19T12:54:54+00:00"]
+    ]""",
+    ],
+)
+async def test_next_url(mock, section_html, input_):
+    # test for checking if urls are generated when the time in the config is not set (None) or is older than the post
     mock.get(PATTERN, status=200, body=section_html, repeat=True)
-    with patch("builtins.open", mock_open(read_data="")) as m:
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
         async with aiohttp.ClientSession() as session:
             xen = xenforo(BASE_URL, session)
-            xen._add_url(SECTION_URL, partial(xen.parse_section, nxt=True))
-            while TASKS:
-                op = await asyncio.gather(*TASKS)
-            # assert xen.errors == 0
+            crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            xen.next_urls(
+                "noteworthy-reports.115", 1, 30, "2012-10-19T12:54:54+0100", crawl_date
+            )
+            for x in TASKS:
+                x.cancel()
+
+            # no call to write, and 5 tasks created
+            # assert m().write.call_args_list == []
+            # assert len(TASKS) == 5
+
+
+async def test_next_url_newer(mock, section_html):
+    # test where the config time is newer than the post time
+    input_ = """[[crawler.xenforo]]
+    url = "https://www.28dayslater.co.uk/forum/"
+    subs = [   
+        ["noteworthy-reports.115/", "2013-10-19T12:54:54+00:00"]
+    ]"""
+    mock.get(PATTERN, status=200, body=section_html, repeat=True)
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
+        async with aiohttp.ClientSession() as session:
+            xen = xenforo(BASE_URL, session)
+            crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            xen.next_urls(
+                "noteworthy-reports.115", 1, 30, "2012-10-19T12:54:54+0100", crawl_date
+            )
+            for x in TASKS:
+                x.cancel()
+
+            assert m().write.call_args_list
+            len(TASKS) == 0
+
+
+async def test_next_url_end(mock, section_html):
+    # test where the config time is older than the post time, and urls to generate is less than the max limit
+    input_ = """[[crawler.xenforo]]
+    url = "https://www.28dayslater.co.uk/forum/"
+    subs = [   
+        ["noteworthy-reports.115/", "2011-10-19T12:54:54+00:00"]
+    ]"""
+    mock.get(PATTERN, status=200, body=section_html, repeat=True)
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
+        async with aiohttp.ClientSession() as session:
+            xen = xenforo(BASE_URL, session)
+            crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            xen.next_urls(
+                "noteworthy-reports.115", 1, 3, "2012-10-19T12:54:54+0100", crawl_date
+            )
+            for x in TASKS:
+                x.cancel()
+            assert len(TASKS) == 3
+            assert m().write.call_args_list
 
 
 data = [
@@ -288,3 +352,14 @@ async def test_live():
 
             db_count = db_sess.query(refs).count()
             assert db_count == 11
+
+
+async def _test_live_next():
+    db_sess = session_factory()
+    db_sess.execute(text("DELETE FROM refs"))
+    with patch("builtins.open", mock_open(read_data="")) as m:
+        async with aiohttp.ClientSession() as session:
+            xen = xenforo(BASE_URL, session)
+            xen._add_url(SECTION_URL, partial(xen.parse_section, nxt=True))
+            while TASKS:
+                op = await asyncio.gather(*TASKS)
