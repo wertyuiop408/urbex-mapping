@@ -1,6 +1,7 @@
 import asyncio
 import builtins
 from datetime import datetime
+from datetime import timezone
 from functools import partial
 from unittest.mock import patch, mock_open
 import re
@@ -177,7 +178,21 @@ async def test_next(mock, posts_json):
             # ceil of wp-total/10
             assert wp.completed_count == 8
 
-async def test_next2(mock, posts_json):
+
+@pytest.mark.parametrize(
+    "input_",
+    [
+        """[[crawler.wordpress]]
+        url = "https://www.whateversleft.co.uk/"
+        lc = ""
+    """,
+        """[[crawler.wordpress]]
+        url = "https://www.whateversleft.co.uk/"
+        lc = "2011-10-19T12:54:54"
+    """,
+    ],
+)
+async def test_next_url(mock, posts_json, input_):
     # Test to ensure that parsing will paginate when asked to
     pattern = re.compile(
         r"^https://www\.whateversleft\.co\.uk/wp-json/wp/v2/posts\?.*$"
@@ -186,22 +201,88 @@ async def test_next2(mock, posts_json):
         pattern, status=200, body=posts_json, headers={"X-WP-Total": "71"}, repeat=True
     )
 
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
+        async with aiohttp.ClientSession() as session:
+            wp = wordpress(BASE_URL, session)
+            crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            wp.next_urls(1, 30, 10, "2012-10-19T12:54:54", crawl_date)
+            for x in TASKS:
+                x.cancel()
+            # no call to write, and 5 tasks created
+            assert m().write.call_args_list == []
+            assert len(TASKS) == 5
+
+
+async def test_next_newer(mock, posts_json):
+    # Test to ensure that parsing will paginate when asked to
+    pattern = re.compile(
+        r"^https://www\.whateversleft\.co\.uk/wp-json/wp/v2/posts\?.*$"
+    )
+    mock.get(
+        pattern, status=200, body=posts_json, headers={"X-WP-Total": "71"}, repeat=True
+    )
     input_ = """[[crawler.wordpress]]
         url = "https://www.whateversleft.co.uk/"
-        lc = ""
+        lc = "2013-10-19T12:54:54"
     """
     with patch("builtins.open", mock_open(read_data=input_)) as m:
         async with aiohttp.ClientSession() as session:
             wp = wordpress(BASE_URL, session)
-            wp._add_url(POST_URL, partial(wp.parse, nxt=True))
-            while TASKS:
-                op = await asyncio.gather(*TASKS)
-            assert wp.errors == 0
+            crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            wp.next_urls(1, 30, 10, "2012-10-19T12:54:54", crawl_date)
+            for x in TASKS:
+                x.cancel()
 
-            # ceil of wp-total/10
-            assert wp.completed_count == 8
+            assert m().write.call_args_list
+            len(TASKS) == 0
 
 
+async def test_next_end(mock, posts_json):
+    # Test to ensure that parsing will paginate when asked to
+    pattern = re.compile(
+        r"^https://www\.whateversleft\.co\.uk/wp-json/wp/v2/posts\?.*$"
+    )
+    mock.get(
+        pattern, status=200, body=posts_json, headers={"X-WP-Total": "71"}, repeat=True
+    )
+    input_ = """[[crawler.wordpress]]
+        url = "https://www.whateversleft.co.uk/"
+        lc = "2011-10-19T12:54:54"
+    """
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
+        async with aiohttp.ClientSession() as session:
+            wp = wordpress(BASE_URL, session)
+            crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            wp.next_urls(1, 3, 10, "2012-10-19T12:54:54", crawl_date)
+            for x in TASKS:
+                x.cancel()
+
+            assert len(TASKS) == 2
+            assert m().write.call_args_list
+
+
+async def test_next_single(mock, posts_json):
+    # Test to ensure that parsing will paginate when asked to
+    pattern = re.compile(
+        r"^https://www\.whateversleft\.co\.uk/wp-json/wp/v2/posts\?.*$"
+    )
+    mock.get(
+        pattern, status=200, body=posts_json, headers={"X-WP-Total": "71"}, repeat=True
+    )
+    input_ = """[[crawler.wordpress]]
+        url = "https://www.whateversleft.co.uk/"
+        lc = "2011-10-19T12:54:54"
+    """
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
+        async with aiohttp.ClientSession() as session:
+            wp = wordpress(BASE_URL, session)
+            crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            wp.next_urls(1, 1, 10, "2012-10-19T12:54:54", crawl_date)
+            for x in TASKS:
+                x.cancel()
+
+            assert len(TASKS) == 0
+            assert m().write.call_args_list
 
 
 data = [
@@ -217,7 +298,7 @@ data = [
     """,
     """[[crawler.wordpress]]
         url = "https://www.whateversleft.co.uk"
-        lc = [[2]]"""
+        lc = [[2]]""",
 ]
 
 
