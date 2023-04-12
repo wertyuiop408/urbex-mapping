@@ -195,21 +195,18 @@ class xenforo(spider):
         url_limit = getattr(self.sess._connector, "limit_per_host", 5)
         if url_limit == 0:
             url_limit = 5
-        for i in range(0, url_limit):
-            # if there are no more pages in section, then stop
-            if (page_no + i) > max_pages:
-                # write?
+
+        for i in range(1, url_limit + 1):
+            nxt_page = page_no + i
+
+            if nxt_page > max_pages:
                 self.write_config_time(section + "/", self.crawl_times[section])
                 break
-
-            _url = (
-                self.base_url + section + "/page-" + str(page_no + i) + self.suffix_url
-            )
-
-            # set the last one of each batch
             nxt = False
-            if i + 1 == url_limit:
+
+            if i == url_limit:
                 nxt = True
+            _url = self.base_url + section + "/page-" + str(nxt_page) + self.suffix_url
             self._add_url(_url, partial(self.parse_section, nxt=nxt))
 
         return

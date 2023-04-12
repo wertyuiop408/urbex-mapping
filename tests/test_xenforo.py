@@ -197,8 +197,8 @@ async def test_next_url(mock, section_html, input_):
                 x.cancel()
 
             # no call to write, and 5 tasks created
-            # assert m().write.call_args_list == []
-            # assert len(TASKS) == 5
+            assert m().write.call_args_list == []
+            assert len(TASKS) == 5
 
 
 async def test_next_url_newer(mock, section_html):
@@ -240,7 +240,28 @@ async def test_next_url_end(mock, section_html):
             )
             for x in TASKS:
                 x.cancel()
-            assert len(TASKS) == 3
+            assert len(TASKS) == 2
+            assert m().write.call_args_list
+
+
+async def test_next_url_single(mock, section_html):
+    # test to ensure urls are not generated when there was only 1 page
+    input_ = """[[crawler.xenforo]]
+    url = "https://www.28dayslater.co.uk/forum/"
+    subs = [   
+        ["noteworthy-reports.115/", "2011-10-19T12:54:54+00:00"]
+    ]"""
+    mock.get(PATTERN, status=200, body=section_html, repeat=True)
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
+        async with aiohttp.ClientSession() as session:
+            xen = xenforo(BASE_URL, session)
+            crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            xen.next_urls(
+                "noteworthy-reports.115", 1, 1, "2012-10-19T12:54:54+0100", crawl_date
+            )
+            for x in TASKS:
+                x.cancel()
+            assert len(TASKS) == 0
             assert m().write.call_args_list
 
 
