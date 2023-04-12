@@ -14,6 +14,7 @@ from spider import TASKS
 import pytest
 import aiohttp
 from aioresponses import aioresponses
+from sqlalchemy import text
 
 
 URL_ = "https://example.com"
@@ -345,12 +346,30 @@ async def test_malformed_config_date(mock, posts_json):
             assert cb != None
 
 
-async def test_save_config():
-    input_ = """[[crawler.wordpress]]
-        url = "https://www.whateversleft.co.uk/"
-        lc = "2023-02-08T17:48:08"
-    """
-    with patch("builtins.open", mock_open(read_data=input_)) as m:
+# Always keep this at the end
+async def test_live():
+    db_sess = session_factory()
+    db_sess.execute(text("DELETE FROM refs"))
+    with patch("builtins.open", mock_open(read_data="")) as m:
         async with aiohttp.ClientSession() as session:
             wp = wordpress(BASE_URL, session)
-            wp.write_config_time("2023-02-08T17:48:00")
+            res, cb = await wp.get_url(POST_URL, partial(wp.parse, nxt=False))
+
+            assert res.status == 200
+            assert len(cb) == 10
+            assert wp.errors == 0
+
+            db_count = db_sess.query(refs).count()
+            assert db_count == 10
+
+
+async def _test_live_next():
+    db_sess = session_factory()
+    db_sess.execute(text("DELETE FROM refs"))
+    with patch("builtins.open", mock_open(read_data="")) as m:
+        async with aiohttp.ClientSession() as session:
+            wp = wordpress(BASE_URL, session)
+            wp._add_url(POST_URL, partial(wp.parse, nxt=True))
+
+            while TASKS:
+                op = await asyncio.gather(*TASKS)
