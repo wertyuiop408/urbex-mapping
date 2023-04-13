@@ -112,10 +112,6 @@ class xenforo(spider):
 
         return
 
-    async def parse_test(self, res, *cb1, **cb2):
-        # print(locals())
-        return
-
     async def parse_section(self, res, *cb1, **cb2) -> None:
         crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
