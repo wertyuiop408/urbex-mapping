@@ -62,7 +62,7 @@ class refs(Base):
     row_id = Column(Integer, primary_key=True)
     url = Column(Text)
     title = Column(Text)
-    place_id = Column(Integer, default=0)  # DEFAULT 0, -- didn't default????
+    place_id = Column(Integer, server_default=text("0"))
     date_inserted = Column(Text)  # date we inserted the entry into the db*/
     date_scrape = Column(Text)  # date that the full thread was scraped */
     date_post = Column(Text)  # date that a thread was posted */
