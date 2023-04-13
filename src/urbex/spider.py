@@ -1,16 +1,17 @@
 from abc import ABC, abstractmethod
 from functools import partial
+from datetime import datetime, timezone
 
 import aiohttp
 import asyncio
 
 from sqlalchemy import text
 from db_base import session_factory
+from db_tables import refs
 from aiohttp.client import ClientSession
 from typing import Callable, Any
 
 TASKS = set()
-
 
 
 class spider(ABC):
@@ -23,7 +24,6 @@ class spider(ABC):
         tt = asyncio.create_task(self.get_url(url_, callback))
         TASKS.add(tt)
         tt.add_done_callback(TASKS.discard)
-
 
     async def get_url(self, url_: str, callback=None):
         print(f"getting {url_}")
@@ -61,3 +61,12 @@ class spider(ABC):
         res = session.execute(sql_stmnt, data_arr).rowcount
         session.commit()
         return res
+
+    def save_url(self, res):
+        crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        data = refs(
+            title=None, url=str(res.url), date_inserted=crawl_date, date_post=None
+        )
+
+        self.save_to_db([data.__dict__])
+        return data.__dict__

@@ -111,15 +111,7 @@ class xenforo(spider):
             return await self.parse_thread(res, *cb1, **cb2)
 
         else:
-            crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
-            data = refs(
-                title=None,
-                url=str(res.url),
-                date_post=None,
-                date_inserted=crawl_date,
-            )
-
-            self.save_to_db([data.__dict__])
+            return self.save_url(res)
         return
 
     async def parse_section(self, res, *cb1, **cb2) -> None:
