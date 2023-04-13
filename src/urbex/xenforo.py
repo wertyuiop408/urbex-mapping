@@ -102,6 +102,20 @@ class xenforo(spider):
         conf.save()
         return
 
+    async def parser(self, res, *cb1, **cb2):
+        # based on the url, decide which parser to use
+        if res.url.parts[1] == "forum":
+            await self.parse_section(res, *cb1, **cb2)
+
+        elif res.url.parts[1] == "threads":
+            await self.parse_thread(res, *cb1, **cb2)
+
+        return
+
+    async def parse_test(self, res, *cb1, **cb2):
+        # print(locals())
+        return
+
     async def parse_section(self, res, *cb1, **cb2) -> None:
         crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
