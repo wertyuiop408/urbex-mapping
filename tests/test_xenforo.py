@@ -357,6 +357,51 @@ async def test_malformed_config_date(mock, section_html):
             assert cb != None
 
 
+async def test_200_thread(mock):
+    with open("tests/28dl_thread.html", "r") as fp:
+        html = fp.read()
+
+    mock.get(SECTION_URL, status=200, body=html)
+    with patch("builtins.open", mock_open(read_data="")) as m:
+        async with aiohttp.ClientSession() as session:
+            xen = xenforo(BASE_URL, session)
+            # callback is needed, otherwise the connection is closed?
+            res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_thread))
+            assert (
+                cb["title"] == "Report - Tranno Farm, Breage, Cornwall - October 2020"
+            )
+            assert cb["url"] == SECTION_URL
+            assert cb["date_post"] == "2020-10-20T18:08:33+0100"
+            db_sess = session_factory()
+            db_count = db_sess.query(refs).count()
+            assert db_count == 1
+
+
+async def test_empty_thread(mock):
+    mock.get(SECTION_URL, status=200, body="")
+    with patch("builtins.open", mock_open(read_data="")) as m:
+        async with aiohttp.ClientSession() as session:
+            xen = xenforo(BASE_URL, session)
+            # callback is needed, otherwise the connection is closed?
+            res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_thread))
+            assert cb == None
+            assert xen.errors == 1
+
+
+async def test_error_thread(mock):
+    with open("tests/28dl_error.html", "r") as fp:
+        html = fp.read()
+
+    mock.get(SECTION_URL, status=200, body=html)
+    with patch("builtins.open", mock_open(read_data="")) as m:
+        async with aiohttp.ClientSession() as session:
+            xen = xenforo(BASE_URL, session)
+            # callback is needed, otherwise the connection is closed?
+            res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_thread))
+            assert cb == None
+            assert xen.errors == 1
+
+
 # Always keep this at the end
 async def test_live():
     db_sess = session_factory()

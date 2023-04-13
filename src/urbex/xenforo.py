@@ -174,6 +174,23 @@ class xenforo(spider):
             self.next_urls(section, curr_page, max_pages, first_post_date, crawl_date)
         return ret_list
 
+    async def parse_thread(self, res, *cb1, **cb2) -> None:
+        crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+        txt = await res.text()
+        soup = BeautifulSoup(txt, "lxml")
+        title = soup.select_one("div.p-title").get_text().replace("\xa0", " ").strip()
+        thread_date = soup.select_one("div.p-description time").get("datetime")
+        data = refs(
+            title=title,
+            url=str(res.url),
+            date_post=thread_date,
+            date_inserted=crawl_date,
+        )
+
+        self.save_to_db([data.__dict__])
+        return data.__dict__
+
     def next_urls(self, section, page_no, max_pages, first_post_date, crawl_date):
         # cheesy hack for timezone fix to ISO8601
         if first_post_date[-5] == "+":
