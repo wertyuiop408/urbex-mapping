@@ -1,21 +1,18 @@
 import asyncio
 import builtins
-from datetime import datetime
-from datetime import timezone
-from functools import partial
-from unittest.mock import patch, mock_open
-from sqlalchemy import text
 import re
+from datetime import datetime, timezone
+from functools import partial
+from unittest.mock import mock_open, patch
 
-from xenforo import xenforo
+import aiohttp
+import pytest
+from aioresponses import aioresponses
 from db_base import session_factory
 from db_tables import refs
 from spider import TASKS
-
-import pytest
-import aiohttp
-from aioresponses import aioresponses
-
+from sqlalchemy import text
+from xenforo import xenforo
 
 URL_ = "https://example.com"
 SECT_MAX_PAGES = 215
@@ -358,6 +355,8 @@ async def test_malformed_config_date(mock, section_html):
 
 
 async def test_200_thread(mock):
+    db_sess = session_factory()
+    db_sess.execute(text("DELETE FROM refs"))
     with open("tests/28dl_thread.html", "r") as fp:
         html = fp.read()
 
@@ -372,7 +371,6 @@ async def test_200_thread(mock):
             )
             assert cb["url"] == SECTION_URL
             assert cb["date_post"] == "2020-10-20T18:08:33+0100"
-            db_sess = session_factory()
             db_count = db_sess.query(refs).count()
             assert db_count == 1
 
