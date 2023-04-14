@@ -1,12 +1,11 @@
 import asyncio
 from functools import partial
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
 
-import pytest
 import aiohttp
+import pytest
 from aiohttp.http_exceptions import HttpProcessingError
 from aioresponses import aioresponses
-
 from config import config
 from spider import spider
 
@@ -44,8 +43,8 @@ async def test_404_200(mock):
         y = await x.get_url(URL_)
         y2 = await x.get_url(URL_)
 
-        assert y.status == 404
-        assert y2.status == 200
+        assert y[0].status == 404
+        assert y2[0].status == 200
 
 
 async def test_404_200_cb(mock):
@@ -57,8 +56,8 @@ async def test_404_200_cb(mock):
         y = await x.get_url(URL_, empty)
         y2 = await x.get_url(URL_, empty)
 
-        assert y.status == 404
-        assert y2.status == 200
+        assert y[0].status == 404
+        assert y2[0].status == 200
 
 
 @pytest.mark.parametrize(
@@ -78,7 +77,7 @@ async def test_cb_noargs(mock, input_):
         mock.get(URL_, status=200)
         y = await x.get_url(URL_)
 
-        await x.handle_callback(y, input_)
+        await x.handle_callback(y[0], input_)
 
 
 async def test_except(mock):
@@ -87,8 +86,9 @@ async def test_except(mock):
         x = spider()
         x.sess = session
         y = await x.get_url(URL_)
-        # maybe have an status for the call? S_Status=OK?
-        assert y.status == 404
+
+        assert type(y) == tuple
+        assert type(y[0]) == HttpProcessingError
 
 
 @pytest.mark.parametrize(
