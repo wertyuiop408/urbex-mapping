@@ -7,7 +7,10 @@ import pytest
 from aiohttp.http_exceptions import HttpProcessingError
 from aioresponses import aioresponses
 from config import config
+from db_base import session_factory
+from db_tables import refs
 from spider import spider
+from sqlalchemy import text
 
 URL_ = "https://example.com"
 
@@ -122,3 +125,18 @@ async def test_get_crawler_index(input_):
         assert conf.get_crawler_index(2) == -1
         assert conf.get_crawler_index("www.example.co.uk/") == -1
         assert conf.get_crawler_index("https://www.example.co.uk") == -1
+
+
+async def test_save(mock):
+    db_sess = session_factory()
+    db_sess.execute(text("DELETE FROM refs"))
+    mock.get(URL_, status=200, body="")
+    async with aiohttp.ClientSession() as session:
+        x = spider()
+        x.sess = session
+
+        resp = await x.sess.get(URL_)
+        assert resp.status == 200
+        x.save_url(resp)
+        db_count = db_sess.query(refs).count()
+        assert db_count == 1

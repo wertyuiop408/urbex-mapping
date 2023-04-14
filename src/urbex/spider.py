@@ -1,15 +1,14 @@
+import asyncio
 from abc import ABC, abstractmethod
-from functools import partial
 from datetime import datetime, timezone
+from functools import partial
+from typing import Any, Callable
 
 import aiohttp
-import asyncio
-
-from sqlalchemy import text
+from aiohttp.client import ClientSession
 from db_base import session_factory
 from db_tables import refs
-from aiohttp.client import ClientSession
-from typing import Callable, Any
+from sqlalchemy import text
 
 TASKS = set()
 
