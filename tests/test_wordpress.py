@@ -1,21 +1,18 @@
 import asyncio
 import builtins
-from datetime import datetime
-from datetime import timezone
-from functools import partial
-from unittest.mock import patch, mock_open
 import re
+from datetime import datetime, timezone
+from functools import partial
+from unittest.mock import mock_open, patch
 
-from wordpress import wordpress
+import aiohttp
+import pytest
+from aioresponses import aioresponses
 from db_base import session_factory
 from db_tables import refs
 from spider import TASKS
-
-import pytest
-import aiohttp
-from aioresponses import aioresponses
 from sqlalchemy import text
-
+from wordpress import wordpress
 
 URL_ = "https://example.com"
 SECT_MAX_PAGES = 215
@@ -344,6 +341,17 @@ async def test_malformed_config_date(mock, posts_json):
             wp = wordpress(BASE_URL, session)
             res, cb = await wp.get_url(POST_URL, partial(wp.parse, nxt=False))
             assert cb != None
+
+
+async def test_200_post(mock):
+    with open("tests/wp_post.json", "r") as fp:
+        posts_json = fp.read()
+    mock.get(POST_URL, status=200, body=posts_json, headers={"X-WP-Total": "10"})
+    with patch("builtins.open", mock_open(read_data="")) as m:
+        async with aiohttp.ClientSession() as session:
+            wp = wordpress(BASE_URL, session)
+            res, cb = await wp.get_url(POST_URL, partial(wp.parse_post, nxt=False))
+            assert res.status == 200
 
 
 # Always keep this at the end

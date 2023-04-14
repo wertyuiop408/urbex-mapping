@@ -1,12 +1,11 @@
 import asyncio
-from datetime import datetime, timezone
 import math
-from urllib.parse import urlparse, urljoin
+from datetime import datetime, timezone
+from urllib.parse import urljoin, urlparse
 
 from aiohttp.client import ClientSession
-
-from db_tables import refs
 from config import config
+from db_tables import refs
 from spider import *
 
 
@@ -79,6 +78,19 @@ class wordpress(spider):
             )
 
         return ret_list
+
+    async def parse_post(self, res, *cb1, **cb2):
+        crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        content = await res.json()
+        data = refs(
+            title=content["title"]["rendered"],
+            url=content["link"],
+            date_post=content["date"],
+            date_inserted=crawl_date,
+        )
+
+        self.save_to_db([data.__dict__])
+        return data.__dict__
 
     def next_urls(
         self, page_no, max_pages, results_per_page, first_post_date, crawl_date
