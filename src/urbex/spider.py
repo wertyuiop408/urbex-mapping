@@ -50,6 +50,7 @@ class spider(ABC):
         return await part()
 
     def save_to_db(self, data_arr: list[dict[str, Any]]) -> int:
+        # insert if the url doesn't exist, reason for no unqiue constraint is that the url might want to be added again because it can contain multiple places
         sql_stmnt = text(
             """INSERT OR IGNORE INTO refs(url, title, date_inserted, date_post) 
             SELECT :url, :title, :date_inserted, :date_post WHERE NOT EXISTS (SELECT 1 FROM refs WHERE url = :url)"""
