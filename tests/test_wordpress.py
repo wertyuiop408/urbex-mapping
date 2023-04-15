@@ -354,6 +354,89 @@ async def test_200_post(mock):
             assert res.status == 200
 
 
+async def test_parser_posts(mock, posts_json):
+    mock.get(POST_URL, status=200, body=posts_json, headers={"X-WP-Total": "10"})
+    with patch("builtins.open", mock_open(read_data="")) as m:
+        async with aiohttp.ClientSession() as session:
+            wp = wordpress(BASE_URL, session)
+            res, cb = await wp.get_url(POST_URL, partial(wp.parser, nxt=False))
+
+            assert len(cb) == 10
+
+            for x in zip(POSTS_DATA, cb):
+                assert x[0]["title"] == x[1]["title"]
+                assert x[0]["url"] == x[1]["url"]
+                assert x[0]["date_post"] == x[1]["date_post"]
+            assert wp.errors == 0
+
+
+async def test_parser_post(mock):
+    with open("tests/wp_post.json", "r") as fp:
+        post_json = fp.read()
+
+    db_sess = session_factory()
+    db_sess.execute(text("DELETE FROM refs"))
+    # url_ = "https://www.whateversleft.co.uk/other/bank-of-england-house-bristol/"
+    url_ = "https://www.whateversleft.co.uk/wp-json/wp/v2/posts/13086"
+    mock.get(url_, status=200, body=post_json)
+    with patch("builtins.open", mock_open(read_data="")) as m:
+        async with aiohttp.ClientSession() as session:
+            wp = wordpress(BASE_URL, session)
+            res, cb = await wp.get_url(url_, partial(wp.parser))
+
+            assert isinstance(cb, dict)
+            assert wp.errors == 0
+            db_count = db_sess.query(refs).count()
+            assert db_count == 1
+
+
+async def test_parser_home(mock):
+    with open("tests/wp_posts.json", "r") as fp:
+        post_json = fp.read()
+
+    db_sess = session_factory()
+    db_sess.execute(text("DELETE FROM refs"))
+    url_ = "https://www.whateversleft.co.uk/"
+    mock.get(url_, status=200, body="")
+    mock.get(
+        "https://www.whateversleft.co.uk/wp-json/wp/v2/posts?per_page=100&page=1",
+        status=200,
+        body=post_json,
+        headers={"X-WP-Total": "10"},
+    )
+
+    with patch("builtins.open", mock_open(read_data="")) as m:
+        async with aiohttp.ClientSession() as session:
+            wp = wordpress(BASE_URL, session)
+            res, cb = await wp.get_url(url_, partial(wp.parser))
+
+            assert len(TASKS) == 1
+            while TASKS:
+                op = await asyncio.gather(*TASKS)
+
+            db_count = db_sess.query(refs).count()
+            assert db_count == 10
+
+
+async def test_parser_generic(mock, posts_json):
+    db_sess = session_factory()
+    db_sess.execute(text("DELETE FROM refs"))
+    mock.get(
+        "https://www.whateversleft.co.uk/foo",
+        status=200,
+        body=posts_json,
+        headers={"X-WP-Total": "10"},
+    )
+    with patch("builtins.open", mock_open(read_data="")) as m:
+        async with aiohttp.ClientSession() as session:
+            wp = wordpress(BASE_URL, session)
+            res, cb = await wp.get_url(
+                "https://www.whateversleft.co.uk/foo", partial(wp.parser)
+            )
+            db_count = db_sess.query(refs).count()
+            assert db_count == 1
+
+
 # Always keep this at the end
 async def test_live():
     db_sess = session_factory()

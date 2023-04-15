@@ -1,5 +1,6 @@
 import asyncio
 import math
+import re
 from datetime import datetime, timezone
 from urllib.parse import urljoin, urlparse
 
@@ -40,6 +41,28 @@ class wordpress(spider):
         except Exception:
             lc = None
         return lc
+
+    async def parser(self, res, *cb1, **cb2):
+        if res.url.path == "/":
+            url_ = (
+                self.base_url
+                + "wp-json/wp/v2/posts?per_page="
+                + str(100)
+                + "&page="
+                + str(1)
+            )
+            self._add_url(url_, partial(self.parse, nxt=True))
+            return
+
+        elif re.match(re.compile(r"^/wp-json/wp/v2/posts/?$"), res.url.path):
+            return await self.parse(res, *cb1, **cb2)
+
+        elif re.match(re.compile(r"^/wp-json/wp/v2/posts/.+"), res.url.path):
+            return await self.parse_post(res, *cb1, **cb2)
+
+        else:
+            self.save_url(res)
+        return
 
     async def parse(self, res, *cb1, **cb2):
         crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
