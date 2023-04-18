@@ -1,25 +1,18 @@
-from sqlalchemy import Integer
-from sqlalchemy import REAL
-from sqlalchemy import Column
-from sqlalchemy import ForeignKey
-from sqlalchemy import UniqueConstraint
-from sqlalchemy import DDL
-from sqlalchemy import Text
-from sqlalchemy import text
-
 from db_base import Base, session_factory
+from sqlalchemy import DDL, REAL, ForeignKey, Integer, Text, UniqueConstraint, text
+from sqlalchemy.orm import mapped_column
 
 
 class places(Base):
     __tablename__ = "places"
-    row_id = Column(Integer, primary_key=True)
-    date_inserted = Column(Text)
-    last_updated = Column(Text)
-    name = Column(Text)
-    long = Column(Text)
-    lat = Column(REAL)
-    notes = Column(REAL)
-    status = Column(Integer)
+    row_id = mapped_column(Integer, primary_key=True)
+    date_inserted = mapped_column(Text)
+    last_updated = mapped_column(Text)
+    name = mapped_column(Text)
+    long = mapped_column(Text)
+    lat = mapped_column(REAL)
+    notes = mapped_column(REAL)
+    status = mapped_column(Integer)
 
     def __repr__(self):
         return f"places(row_id={self.row_id!r}, date_inserted={self.date_inserted!r}, last_inserted={self.last_inserted!r}, name={self.name!r}, long={self.long!r}, lat={self.lat!r}, notes={self.notes!r},status={self.status!r})"
@@ -27,11 +20,11 @@ class places(Base):
 
 class parking(Base):
     __tablename__ = "parking"
-    rowid = Column(Integer, primary_key=True)
-    place_id = Column(Integer, ForeignKey("places.row_id"))
-    lat = Column(REAL)
-    long = Column(REAL)
-    paid = Column(Integer)
+    rowid = mapped_column(Integer, primary_key=True)
+    place_id = mapped_column(Integer, ForeignKey("places.row_id"))
+    lat = mapped_column(REAL)
+    long = mapped_column(REAL)
+    paid = mapped_column(Integer)
 
     # FOREIGN KEY ("place_id") REFERENCES places("row_id")
 
@@ -40,9 +33,9 @@ class parking(Base):
 
 class tag_rel(Base):
     __tablename__ = "tag_rel"
-    rowid = Column(Integer, primary_key=True)
-    place_id = Column(Integer, ForeignKey("places.row_id"))
-    tag_id = Column(Integer, ForeignKey("tags.row_id"))
+    rowid = mapped_column(Integer, primary_key=True)
+    place_id = mapped_column(Integer, ForeignKey("places.row_id"))
+    tag_id = mapped_column(Integer, ForeignKey("tags.row_id"))
     __table_args__ = (UniqueConstraint("place_id", "tag_id"),)
     # FOREIGN KEY("place_id") REFERENCES places("row_id"),
     # FOREIGN KEY("tag_id") REFERENCES tags("row_id"),
@@ -51,22 +44,22 @@ class tag_rel(Base):
 
 class tags(Base):
     __tablename__ = "tags"
-    row_id = Column(Integer, primary_key=True)
-    tag = Column(Text, unique=True)
+    row_id = mapped_column(Integer, primary_key=True)
+    tag = mapped_column(Text, unique=True)
     # UNIQUE("tag")
 
 
 # handle our data sources for parsing
 class refs(Base):
     __tablename__ = "refs"
-    row_id = Column(Integer, primary_key=True)
-    url = Column(Text)
-    title = Column(Text)
-    place_id = Column(Integer, server_default=text("0"))
-    date_inserted = Column(Text)  # date we inserted the entry into the db*/
-    date_scrape = Column(Text)  # date that the full thread was scraped */
-    date_post = Column(Text)  # date that a thread was posted */
-    raw = Column(Text)
+    row_id = mapped_column(Integer, primary_key=True)
+    url = mapped_column(Text)
+    title = mapped_column(Text)
+    place_id = mapped_column(Integer, server_default=text("0"))
+    date_inserted = mapped_column(Text)  # date we inserted the entry into the db*/
+    date_scrape = mapped_column(Text)  # date that the full thread was scraped */
+    date_post = mapped_column(Text)  # date that a thread was posted */
+    raw = mapped_column(Text)
     __table_args__ = (UniqueConstraint("url", "place_id", name="dupes"),)
     # CONSTRAINT dupes UNIQUE("url", "place_id")
 
