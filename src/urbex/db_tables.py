@@ -5,13 +5,13 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 class places(Base):
     __tablename__ = "places"
-    row_id = mapped_column(Integer, primary_key=True)
-    date_inserted = mapped_column(Text)
-    last_updated = mapped_column(Text)
-    name = mapped_column(Text)
-    long = mapped_column(Text)
+    row_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    date_inserted: Mapped[Optional[str]] = mapped_column(Text)
+    last_updated: Mapped[Optional[str]] = mapped_column(Text)
+    name: Mapped[Optional[str]] = mapped_column(Text)
+    long = mapped_column(REAL)
     lat = mapped_column(REAL)
-    notes = mapped_column(REAL)
+    notes: Mapped[Optional[str]] = mapped_column(TEXT)
     status = mapped_column(Integer)
 
     def __repr__(self):
