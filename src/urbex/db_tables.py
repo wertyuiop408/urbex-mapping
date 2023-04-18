@@ -1,3 +1,5 @@
+from typing import Optional
+
 from db_base import Base, session_factory
 from sqlalchemy import DDL, REAL, ForeignKey, Integer, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -9,10 +11,10 @@ class places(Base):
     date_inserted: Mapped[Optional[str]] = mapped_column(Text)
     last_updated: Mapped[Optional[str]] = mapped_column(Text)
     name: Mapped[Optional[str]] = mapped_column(Text)
-    long = mapped_column(REAL)
-    lat = mapped_column(REAL)
+    long: Mapped[Optional[int]] = mapped_column(REAL)
+    lat: Mapped[Optional[int]] = mapped_column(REAL)
     notes: Mapped[Optional[str]] = mapped_column(TEXT)
-    status = mapped_column(Integer)
+    status: Mapped[int] = mapped_column(Integer)
 
     def __repr__(self):
         return f"places(row_id={self.row_id!r}, date_inserted={self.date_inserted!r}, last_inserted={self.last_inserted!r}, name={self.name!r}, long={self.long!r}, lat={self.lat!r}, notes={self.notes!r},status={self.status!r})"
@@ -20,9 +22,11 @@ class places(Base):
 
 class tag_rel(Base):
     __tablename__ = "tag_rel"
-    rowid = mapped_column(Integer, primary_key=True)
-    place_id = mapped_column(Integer, ForeignKey("places.row_id"))
-    tag_id = mapped_column(Integer, ForeignKey("tags.row_id"))
+    rowid: Mapped[int] = mapped_column(Integer, primary_key=True)
+    place_id: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey("places.row_id")
+    )
+    tag_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("tags.row_id"))
     __table_args__ = (UniqueConstraint("place_id", "tag_id"),)
     # FOREIGN KEY("place_id") REFERENCES places("row_id"),
     # FOREIGN KEY("tag_id") REFERENCES tags("row_id"),
@@ -31,22 +35,28 @@ class tag_rel(Base):
 
 class tags(Base):
     __tablename__ = "tags"
-    row_id = mapped_column(Integer, primary_key=True)
-    tag = mapped_column(Text, unique=True)
+    row_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    tag: Mapped[Optional[str]] = mapped_column(Text, unique=True)
     # UNIQUE("tag")
 
 
 # handle our data sources for parsing
 class refs(Base):
     __tablename__ = "refs"
-    row_id = mapped_column(Integer, primary_key=True)
-    url = mapped_column(Text)
-    title = mapped_column(Text)
-    place_id = mapped_column(Integer, server_default=text("0"))
-    date_inserted = mapped_column(Text)  # date we inserted the entry into the db*/
-    date_scrape = mapped_column(Text)  # date that the full thread was scraped */
-    date_post = mapped_column(Text)  # date that a thread was posted */
-    raw = mapped_column(Text)
+    row_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    url: Mapped[Optional[str]] = mapped_column(Text)
+    title: Mapped[Optional[str]] = mapped_column(Text)
+    place_id: Mapped[Optional[int]] = mapped_column(Integer, server_default=text("0"))
+    date_inserted: Mapped[Optional[str]] = mapped_column(
+        Text
+    )  # date we inserted the entry into the db*/
+    date_scrape: Mapped[Optional[str]] = mapped_column(
+        Text
+    )  # date that the full thread was scraped */
+    date_post: Mapped[Optional[str]] = mapped_column(
+        Text
+    )  # date that a thread was posted */
+    raw: Mapped[Optional[str]] = mapped_column(Text)
     __table_args__ = (UniqueConstraint("url", "place_id", name="dupes"),)
     # CONSTRAINT dupes UNIQUE("url", "place_id")
 
