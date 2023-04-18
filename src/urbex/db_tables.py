@@ -1,6 +1,6 @@
 from db_base import Base, session_factory
 from sqlalchemy import DDL, REAL, ForeignKey, Integer, Text, UniqueConstraint, text
-from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
 
 class places(Base):
@@ -16,19 +16,6 @@ class places(Base):
 
     def __repr__(self):
         return f"places(row_id={self.row_id!r}, date_inserted={self.date_inserted!r}, last_inserted={self.last_inserted!r}, name={self.name!r}, long={self.long!r}, lat={self.lat!r}, notes={self.notes!r},status={self.status!r})"
-
-
-class parking(Base):
-    __tablename__ = "parking"
-    rowid = mapped_column(Integer, primary_key=True)
-    place_id = mapped_column(Integer, ForeignKey("places.row_id"))
-    lat = mapped_column(REAL)
-    long = mapped_column(REAL)
-    paid = mapped_column(Integer)
-
-    # FOREIGN KEY ("place_id") REFERENCES places("row_id")
-
-    # are tags categories?
 
 
 class tag_rel(Base):
