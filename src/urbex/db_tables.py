@@ -13,7 +13,7 @@ class places(Base):
     name: Mapped[Optional[str]] = mapped_column(Text)
     long: Mapped[Optional[int]] = mapped_column(REAL)
     lat: Mapped[Optional[int]] = mapped_column(REAL)
-    notes: Mapped[Optional[str]] = mapped_column(TEXT)
+    notes: Mapped[Optional[str]] = mapped_column(Text)
     status: Mapped[int] = mapped_column(Integer)
 
     def __repr__(self):
