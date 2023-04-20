@@ -89,7 +89,7 @@ class wordpress(spider):
                 date_post=row["date"],
                 date_inserted=crawl_date,
             )
-            ret_list.append(data.__dict__)
+            ret_list.append(data)
         self.save_to_db(ret_list)
 
         if cb2.get("nxt"):
@@ -112,8 +112,8 @@ class wordpress(spider):
             date_inserted=crawl_date,
         )
 
-        self.save_to_db([data.__dict__])
-        return data.__dict__
+        self.save_to_db([data])
+        return data
 
     def next_urls(
         self, page_no, max_pages, results_per_page, first_post_date, crawl_date
