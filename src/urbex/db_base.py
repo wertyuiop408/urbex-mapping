@@ -1,7 +1,7 @@
 import sys
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, MappedAsDataclass, Session, sessionmaker
 
 db_uri = "sqlite+pysqlite:///urbex.db"
 if "pytest" in sys.modules:
@@ -12,7 +12,7 @@ engine = create_engine(db_uri)
 _SessionFactory = sessionmaker(engine, future=True)
 
 
-class Base(DeclarativeBase):
+class Base(MappedAsDataclass, DeclarativeBase):
     pass
 
 
