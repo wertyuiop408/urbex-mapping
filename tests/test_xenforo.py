@@ -104,9 +104,9 @@ async def test_200_section(mock, section_html):
             assert len(cb) == 10
 
             for x in zip(THREAD_DATA, cb):
-                assert x[0]["title"] == x[1]["title"]
-                assert x[0]["url"] == x[1]["url"]
-                assert x[0]["date_post"] == x[1]["date_post"]
+                assert x[0]["title"] == x[1].title
+                assert x[0]["url"] == x[1].url
+                assert x[0]["date_post"] == x[1].date_post
             assert xen.errors == 0
 
 
@@ -371,11 +371,9 @@ async def test_200_thread(mock):
             xen = xenforo(BASE_URL, session)
             # callback is needed, otherwise the connection is closed?
             res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_thread))
-            assert (
-                cb["title"] == "Report - Tranno Farm, Breage, Cornwall - October 2020"
-            )
-            assert cb["url"] == SECTION_URL
-            assert cb["date_post"] == "2020-10-20T18:08:33+0100"
+            assert cb.title == "Report - Tranno Farm, Breage, Cornwall - October 2020"
+            assert cb.url == SECTION_URL
+            assert cb.date_post == "2020-10-20T18:08:33+0100"
             db_count = db_sess.query(refs).count()
             assert db_count == 1
 

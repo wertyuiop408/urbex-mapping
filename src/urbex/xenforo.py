@@ -1,17 +1,15 @@
-from datetime import datetime, timezone
-import time
-from urllib.parse import urlparse, urljoin
 import asyncio
+import time
+from datetime import datetime, timezone
 from typing import Optional
+from urllib.parse import urljoin, urlparse
 
-from spider import *
-from bs4 import BeautifulSoup
-from bs4 import Tag
-from yarl import URL
 from aiohttp.client import ClientSession
-
-from db_tables import refs
+from bs4 import BeautifulSoup, Tag
 from config import config
+from db_tables import refs
+from spider import *
+from yarl import URL
 
 
 class xenforo(spider):
@@ -179,7 +177,7 @@ class xenforo(spider):
                 date_post=lot_date_post,
                 date_inserted=crawl_date,
             )
-            ret_list.append(data.__dict__)
+            ret_list.append(data)
         self.save_to_db(ret_list)
 
         if cb2.get("nxt"):
@@ -200,8 +198,8 @@ class xenforo(spider):
             date_inserted=crawl_date,
         )
 
-        self.save_to_db([data.__dict__])
-        return data.__dict__
+        self.save_to_db([data])
+        return data
 
     def next_urls(self, section, page_no, max_pages, first_post_date, crawl_date):
         # cheesy hack for timezone fix to ISO8601
