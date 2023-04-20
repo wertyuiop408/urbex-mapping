@@ -1,5 +1,6 @@
 import asyncio
 from abc import ABC, abstractmethod
+from dataclasses import asdict
 from datetime import datetime, timezone
 from functools import partial
 from typing import Any, Callable
@@ -56,6 +57,7 @@ class spider(ABC):
             SELECT :url, :title, :date_inserted, :date_post WHERE NOT EXISTS (SELECT 1 FROM refs WHERE url = :url)"""
         )
 
+        data_arr = [asdict(row) for row in data_arr]
         session = session_factory()
         session.begin()
         res = session.execute(sql_stmnt, data_arr).rowcount
@@ -68,5 +70,5 @@ class spider(ABC):
             title=None, url=str(res.url), date_inserted=crawl_date, date_post=None
         )
 
-        self.save_to_db([data.__dict__])
-        return data.__dict__
+        self.save_to_db([data])
+        return data
