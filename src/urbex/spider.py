@@ -18,6 +18,9 @@ class spider(ABC):
     sess: ClientSession
     errors: int = 0
     completed_count = 0
+    columns = refs.__table__.columns.keys()
+    columns_str = ", ".join(columns[1:])
+    columns_named = ":" + ", :".join(columns[1:])
 
     def _add_url(self, url_: str, callback=None) -> None:
         print(f"adding {url_}")
@@ -53,8 +56,8 @@ class spider(ABC):
     def save_to_db(self, data_arr: list[dict[str, Any]]) -> int:
         # insert if the url doesn't exist, reason for no unqiue constraint is that the url might want to be added again because it can contain multiple places
         sql_stmnt = text(
-            """INSERT OR IGNORE INTO refs(url, title, date_inserted, date_post) 
-            SELECT :url, :title, :date_inserted, :date_post WHERE NOT EXISTS (SELECT 1 FROM refs WHERE url = :url)"""
+            f"""INSERT OR IGNORE INTO refs({spider.columns_str}) 
+            SELECT {spider.columns_named} WHERE NOT EXISTS (SELECT 1 FROM refs WHERE url = :url)"""
         )
 
         data_arr = [asdict(row) for row in data_arr]
