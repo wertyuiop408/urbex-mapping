@@ -51,7 +51,6 @@ class refs(Base):
     date_inserted: Mapped[txt]  # date we inserted the entry into the db*/
     date_scrape: Mapped[txt]  # date that the full thread was scraped */
     date_post: Mapped[txt]  # date that a thread was posted */
-    raw: Mapped[txt]
     __table_args__ = (UniqueConstraint("url", "place_id", name="dupes"),)
     # CONSTRAINT dupes UNIQUE("url", "place_id")
 
