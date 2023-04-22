@@ -9,7 +9,7 @@ if "pytest" in sys.modules:
 
 engine = create_engine(db_uri)
 # use session_factory() to get a new Session
-_SessionFactory = sessionmaker(engine, future=True)
+_SessionFactory = sessionmaker(engine)
 
 
 class Base(MappedAsDataclass, DeclarativeBase):
