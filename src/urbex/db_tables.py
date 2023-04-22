@@ -23,8 +23,8 @@ txt = Annotated[Optional[str], mapped_column(Text, default=None)]
 association_table = Table(
     "place_rel",
     Base.metadata,
-    Column("ref_id", ForeignKey("refs.row_id")),
-    Column("place_id", ForeignKey("places.row_id")),
+    Column("ref_id", ForeignKey("refs.row_id"), primary_key=True),
+    Column("place_id", ForeignKey("places.row_id"), primary_key=True),
 )
 
 
@@ -68,7 +68,7 @@ class tags(Base):
 class refs(Base):
     __tablename__ = "refs"
     row_id: Mapped[intpk]
-    url: Mapped[txt]
+    url: Mapped[txt] = mapped_column(unique=True)
     title: Mapped[txt]
     date_inserted: Mapped[txt]  # date we inserted the entry into the db*/
     date_post: Mapped[txt]  # date that a thread was posted */
