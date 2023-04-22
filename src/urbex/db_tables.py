@@ -5,7 +5,7 @@ from sqlalchemy import REAL, Column, ForeignKey, Integer, Table, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing_extensions import Annotated
 
-__schema_version__ = "0.2.0"
+__schema_version__ = "0.2.1"
 
 intpk = Annotated[int, mapped_column(Integer, primary_key=True, init=False)]
 txt = Annotated[Optional[str], mapped_column(Text, default=None)]
@@ -35,7 +35,7 @@ class places(Base):
     long: Mapped[Optional[int]] = mapped_column(REAL, default=None)
     lat: Mapped[Optional[int]] = mapped_column(REAL, default=None)
     notes: Mapped[txt]
-    status: Mapped[int] = mapped_column(Integer, default=None)
+    status: Mapped[Optional[int]] = mapped_column(Integer, default=None)
 
     assoc_ref: Mapped[List["refs"]] = relationship(
         back_populates="assoc_place", secondary=association_table, default_factory=list
