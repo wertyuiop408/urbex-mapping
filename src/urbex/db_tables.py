@@ -70,9 +70,7 @@ class refs(Base):
     row_id: Mapped[intpk]
     url: Mapped[txt]
     title: Mapped[txt]
-    place_id: Mapped[int] = mapped_column(Integer, server_default=text("0"), default=0)
     date_inserted: Mapped[txt]  # date we inserted the entry into the db*/
-    date_scrape: Mapped[txt]  # date that the full thread was scraped */
     date_post: Mapped[txt]  # date that a thread was posted */
     assoc_place: Mapped[List["places"]] = relationship(
         back_populates="assoc_ref", secondary=association_table, default_factory=list
