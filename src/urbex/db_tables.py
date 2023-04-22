@@ -1,20 +1,11 @@
 from typing import List, Optional
 
 from db_base import Base, session_factory
-from sqlalchemy import (
-    REAL,
-    Column,
-    ForeignKey,
-    Integer,
-    Table,
-    Text,
-    UniqueConstraint,
-    text,
-)
+from sqlalchemy import REAL, Column, ForeignKey, Integer, Table, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing_extensions import Annotated
 
-__schema_version__ = "0.1.0"
+__schema_version__ = "0.2.0"
 
 intpk = Annotated[int, mapped_column(Integer, primary_key=True, init=False)]
 txt = Annotated[Optional[str], mapped_column(Text, default=None)]
@@ -25,6 +16,12 @@ association_table = Table(
     "place_rel",
     Base.metadata,
     Column("ref_id", ForeignKey("refs.row_id"), primary_key=True),
+    Column("place_id", ForeignKey("places.row_id"), primary_key=True),
+)
+assoc_tag_table = Table(
+    "tag_rel",
+    Base.metadata,
+    Column("tag_id", ForeignKey("tags.row_id"), primary_key=True),
     Column("place_id", ForeignKey("places.row_id"), primary_key=True),
 )
 
@@ -43,25 +40,18 @@ class places(Base):
     assoc_ref: Mapped[List["refs"]] = relationship(
         back_populates="assoc_place", secondary=association_table, default_factory=list
     )
-
-
-class tag_rel(Base):
-    __tablename__ = "tag_rel"
-    rowid: Mapped[intpk]
-    place_id: Mapped[Optional[int]] = mapped_column(
-        Integer, ForeignKey("places.row_id")
+    assoc_tag: Mapped[List["tags"]] = relationship(
+        back_populates="assoc_place", secondary=assoc_tag_table, default_factory=list
     )
-    tag_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("tags.row_id"))
-    __table_args__ = (UniqueConstraint("place_id", "tag_id"),)
-    # FOREIGN KEY("place_id") REFERENCES places("row_id"),
-    # FOREIGN KEY("tag_id") REFERENCES tags("row_id"),
-    # UNIQUE("place_id", "tag_id")
 
 
 class tags(Base):
     __tablename__ = "tags"
     row_id: Mapped[intpk]
     tag: Mapped[Optional[str]] = mapped_column(Text, unique=True)
+    assoc_place: Mapped[List["places"]] = relationship(
+        back_populates="assoc_tag", secondary=assoc_tag_table, default_factory=list
+    )
 
 
 # handle our data sources for parsing
