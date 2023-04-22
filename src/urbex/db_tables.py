@@ -1,12 +1,31 @@
-from typing import Optional
+from typing import List, Optional
 
 from db_base import Base, session_factory
-from sqlalchemy import DDL, REAL, ForeignKey, Integer, Text, UniqueConstraint, text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import (
+    DDL,
+    REAL,
+    Column,
+    ForeignKey,
+    Integer,
+    Table,
+    Text,
+    UniqueConstraint,
+    text,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing_extensions import Annotated
 
 intpk = Annotated[int, mapped_column(Integer, primary_key=True, init=False)]
 txt = Annotated[Optional[str], mapped_column(Text, default=None)]
+
+# note for a Core table, we use the sqlalchemy.Column construct,
+# not sqlalchemy.orm.mapped_column
+association_table = Table(
+    "association_table",
+    Base.metadata,
+    Column("ref_id", ForeignKey("refs.row_id")),
+    Column("place_id", ForeignKey("places.row_id")),
+)
 
 
 class places(Base):
@@ -19,6 +38,10 @@ class places(Base):
     lat: Mapped[Optional[int]] = mapped_column(REAL, default=None)
     notes: Mapped[txt]
     status: Mapped[int] = mapped_column(Integer, default=None)
+
+    assoc_ref: Mapped[List["refs"]] = relationship(
+        back_populates="assoc_place", secondary=association_table, default_factory=list
+    )
 
 
 class tag_rel(Base):
@@ -51,7 +74,10 @@ class refs(Base):
     date_inserted: Mapped[txt]  # date we inserted the entry into the db*/
     date_scrape: Mapped[txt]  # date that the full thread was scraped */
     date_post: Mapped[txt]  # date that a thread was posted */
-    __table_args__ = (UniqueConstraint("url", "place_id", name="dupes"),)
+    assoc_place: Mapped[List["places"]] = relationship(
+        back_populates="assoc_ref", secondary=association_table, default_factory=list
+    )
+    # __table_args__ = (UniqueConstraint("url", "place_id", name="dupes"),)
     # CONSTRAINT dupes UNIQUE("url", "place_id")
 
 
