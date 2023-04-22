@@ -1,11 +1,10 @@
 import asyncio
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import asdict
 from datetime import datetime, timezone
 from functools import partial
-from typing import Any, Callable
+from typing import Any
 
-import aiohttp
 from aiohttp.client import ClientSession
 from db_base import session_factory
 from db_tables import refs
@@ -54,10 +53,9 @@ class spider(ABC):
         return await part()
 
     def save_to_db(self, data_arr: list[dict[str, Any]]) -> int:
-        # insert if the url doesn't exist, reason for no unqiue constraint is that the url might want to be added again because it can contain multiple places
+        # orm kind of sucks for this
         sql_stmnt = text(
-            f"""INSERT OR IGNORE INTO refs({spider.columns_str}) 
-            SELECT {spider.columns_named} WHERE NOT EXISTS (SELECT 1 FROM refs WHERE url = :url)"""
+            f"INSERT OR IGNORE INTO refs({spider.columns_str}) VALUES ({spider.columns_named})"
         )
 
         data_arr = [asdict(row) for row in data_arr]
@@ -69,9 +67,7 @@ class spider(ABC):
 
     def save_url(self, res):
         crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
-        data = refs(
-            title=None, url=str(res.url), date_inserted=crawl_date, date_post=None
-        )
+        data = refs(url=str(res.url), date_inserted=crawl_date)
 
         self.save_to_db([data])
         return data
