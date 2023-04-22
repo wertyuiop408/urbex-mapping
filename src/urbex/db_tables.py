@@ -2,7 +2,6 @@ from typing import List, Optional
 
 from db_base import Base, session_factory
 from sqlalchemy import (
-    DDL,
     REAL,
     Column,
     ForeignKey,
@@ -14,6 +13,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing_extensions import Annotated
+
+__schema_version__ = "0.1.0"
 
 intpk = Annotated[int, mapped_column(Integer, primary_key=True, init=False)]
 txt = Annotated[Optional[str], mapped_column(Text, default=None)]
