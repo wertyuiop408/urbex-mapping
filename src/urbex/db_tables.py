@@ -61,7 +61,6 @@ class tags(Base):
     __tablename__ = "tags"
     row_id: Mapped[intpk]
     tag: Mapped[Optional[str]] = mapped_column(Text, unique=True)
-    # UNIQUE("tag")
 
 
 # handle our data sources for parsing
@@ -75,8 +74,6 @@ class refs(Base):
     assoc_place: Mapped[List["places"]] = relationship(
         back_populates="assoc_ref", secondary=association_table, default_factory=list
     )
-    # __table_args__ = (UniqueConstraint("url", "place_id", name="dupes"),)
-    # CONSTRAINT dupes UNIQUE("url", "place_id")
 
 
 session = session_factory()
