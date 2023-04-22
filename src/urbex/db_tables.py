@@ -21,7 +21,7 @@ txt = Annotated[Optional[str], mapped_column(Text, default=None)]
 # note for a Core table, we use the sqlalchemy.Column construct,
 # not sqlalchemy.orm.mapped_column
 association_table = Table(
-    "association_table",
+    "place_rel",
     Base.metadata,
     Column("ref_id", ForeignKey("refs.row_id")),
     Column("place_id", ForeignKey("places.row_id")),
