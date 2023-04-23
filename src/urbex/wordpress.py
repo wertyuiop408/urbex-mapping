@@ -40,7 +40,7 @@ class wordpress(spider):
             lc = None
         return lc
 
-    async def crawl(self):
+    def crawl(self):
         self._add_url(self.base_url, partial(self.parser, nxt=True))
         return
 
@@ -68,7 +68,7 @@ class wordpress(spider):
 
     async def parse(self, res, *cb1, **cb2):
         crawl_date = datetime.now(timezone.utc).isoformat(timespec="seconds")
-        results_per_page = 10
+        results_per_page = 100
 
         # check it's valid
         header_wptotal = res.headers.get("X-WP-Total")
