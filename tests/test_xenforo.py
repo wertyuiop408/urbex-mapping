@@ -1,5 +1,4 @@
 import asyncio
-import builtins
 import re
 from datetime import datetime, timezone
 from functools import partial
@@ -401,6 +400,23 @@ async def test_error_thread(mock):
             res, cb = await xen.get_url(SECTION_URL, partial(xen.parse_thread))
             assert cb == None
             assert xen.errors == 1
+
+
+async def test_crawl(mock):
+    input_ = """[[crawler.xenforo]]
+        url = "https://www.28dayslater.co.uk/forum/"
+        subs = [   
+            ["example", "2023-02-08T17:48:08+00:00"],
+            ["example", "2023-02-08T17:48:08+00:00"]
+        ]"""
+    mock.get(PATTERN, status=200, body=section_html, repeat=True)
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
+        async with aiohttp.ClientSession() as session:
+            xen = xenforo(BASE_URL, session)
+            xen.crawl()
+            for x in TASKS:
+                x.cancel()
+            assert len(TASKS) == 2
 
 
 # Always keep this at the end
