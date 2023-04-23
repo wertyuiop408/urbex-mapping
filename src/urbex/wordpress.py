@@ -1,8 +1,6 @@
-import asyncio
 import math
 import re
 from datetime import datetime, timezone
-from urllib.parse import urljoin, urlparse
 
 from aiohttp.client import ClientSession
 from config import config
@@ -41,6 +39,10 @@ class wordpress(spider):
         except Exception:
             lc = None
         return lc
+
+    async def crawl(self):
+        self._add_url(self.base_url, partial(self.parser, nxt=True))
+        return
 
     async def parser(self, res, *cb1, **cb2):
         if res.url.path == "/":
