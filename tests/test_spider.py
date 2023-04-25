@@ -1,4 +1,3 @@
-import asyncio
 from functools import partial
 from unittest.mock import mock_open, patch
 
@@ -98,16 +97,6 @@ async def test_except(mock):
     "input_",
     (
         """
-        [crawler]
-            [[crawler.xenforo]]
-                site = "example"
-                url = "https://www.example.co.uk/"
-        """,
-        """
-        [[crawler.xenforo]]
-            url = "https://www.example.co.uk/"
-        """,
-        """
         [[crawler]]
             url = "https://www.example.co.uk/"
         """,
@@ -116,15 +105,27 @@ async def test_except(mock):
         None,
     ),
 )
-async def test_get_crawler_index(input_):
+async def test_get_crawler_index_cfg(input_):
     with patch("builtins.open", mock_open(read_data=input_)) as m:
         conf = config()
-        x = conf.get_crawler_index("https://www.example.co.uk/")
-        assert x == -1 or x == 0
-        assert conf.get_crawler_index("") == -1
-        assert conf.get_crawler_index(2) == -1
-        assert conf.get_crawler_index("www.example.co.uk/") == -1
-        assert conf.get_crawler_index("https://www.example.co.uk") == -1
+        assert conf.get_crawler_index("https://www.example.co.uk/") == -1
+
+
+async def test_get_crawler_index():
+    input_ = """
+        [crawler]
+            [[crawler.xenforo]]
+                site = "example"
+                url = "https://www.example.co.uk/"
+        """
+    with patch("builtins.open", mock_open(read_data=input_)) as m:
+        conf = config()
+        assert conf.get_crawler_index("https://www.example.co.uk/") == 0
+        assert conf.get_crawler_index("https://www.example.co.uk") == 0
+        assert conf.get_crawler_index("http://www.example.co.uk/") == 0
+        assert conf.get_crawler_index("www.example.co.uk/") == 0
+        assert conf.get_crawler_index("www.example.co.uk") == 0
+        assert conf.get_crawler_index("www.example.com") == -1
 
 
 async def test_save(mock):

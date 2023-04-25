@@ -1,3 +1,5 @@
+import re
+
 import tomlkit
 from tomlkit.toml_document import TOMLDocument
 
@@ -43,8 +45,12 @@ class config:
         if not isinstance(x, list):
             return -1
 
+        url_ = re.sub(r"^https?://", "", site)  # remove protocol
+        pattern = re.compile(
+            rf"^(https?://)?{url_}/?$", re.I
+        )  # find anything with the protocol, or not
         for count, value in enumerate(x):
-            if value.get("url") == site:
+            if pattern.search(value.get("url")):
                 return count
         return -1
 
