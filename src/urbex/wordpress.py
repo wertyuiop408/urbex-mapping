@@ -6,6 +6,7 @@ from aiohttp.client import ClientSession
 from config import config
 from db_tables import refs
 from spider import *
+from yarl import URL
 
 
 class wordpress(spider):
@@ -13,7 +14,7 @@ class wordpress(spider):
         self.sess = sess  # type: ClientSession
         self.crawl_time = None
 
-        self.base_url = url_.strip(" ").rstrip("/") + "/"
+        self.base_url = url_.strip(" ").rstrip("/")
 
     def get_config_time(self):
         conf = config()
@@ -22,18 +23,17 @@ class wordpress(spider):
         if crawler_index == -1:
             return None
 
-        subs = conf.cfg["crawler"]
+        subs = conf.cfg.get("crawler")
         if not isinstance(subs, dict):
             return None
 
-        subs = subs["wordpress"]
+        subs = subs.get("wordpress")
         if not isinstance(subs, list):
             return None
 
-        lc = subs[crawler_index]["lc"]
+        lc = subs[crawler_index].get("lc")
         if not isinstance(lc, str):
             return None
-
         try:
             lc = datetime.fromisoformat(str(lc))
         except Exception:
@@ -46,12 +46,10 @@ class wordpress(spider):
 
     async def parser(self, res, *cb1, **cb2):
         if res.url.path == "/":
-            url_ = (
-                self.base_url
-                + "wp-json/wp/v2/posts?per_page="
-                + str(100)
-                + "&page="
-                + str(1)
+            url_ = str(
+                URL(self.base_url)
+                .joinpath("wp-json/wp/v2/posts")
+                .with_query({"per_page": 100, "page": 1})
             )
             self._add_url(url_, partial(self.parse, nxt=True))
             return
@@ -145,14 +143,13 @@ class wordpress(spider):
 
             if i == url_limit:
                 nxt = True
-            _url = (
-                self.base_url
-                + "wp-json/wp/v2/posts?per_page="
-                + str(results_per_page)
-                + "&page="
-                + str(nxt_page)
+
+            url_ = str(
+                URL(self.base_url)
+                .joinpath("wp-json/wp/v2/posts")
+                .with_query({"per_page": results_per_page, "page": nxt_page})
             )
-            self._add_url(_url, partial(self.parse, nxt=nxt))
+            self._add_url(url_, partial(self.parse, nxt=nxt))
 
         return
 

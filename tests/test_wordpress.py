@@ -1,5 +1,4 @@
 import asyncio
-import builtins
 import re
 from datetime import datetime, timezone
 from functools import partial
@@ -163,7 +162,7 @@ async def test_next(mock, posts_json):
         r"^https://www\.whateversleft\.co\.uk/wp-json/wp/v2/posts\?.*$"
     )
     mock.get(
-        pattern, status=200, body=posts_json, headers={"X-WP-Total": "71"}, repeat=True
+        pattern, status=200, body=posts_json, headers={"X-WP-Total": "710"}, repeat=True
     )
     with patch("builtins.open", mock_open(read_data="")) as m:
         async with aiohttp.ClientSession() as session:
@@ -173,7 +172,7 @@ async def test_next(mock, posts_json):
                 op = await asyncio.gather(*TASKS)
             assert wp.errors == 0
 
-            # ceil of wp-total/10
+            # ceil of wp-total/100
             assert wp.completed_count == 8
 
 
