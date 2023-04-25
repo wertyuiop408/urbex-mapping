@@ -1,8 +1,6 @@
-import asyncio
-import time
 from datetime import datetime, timezone
 from typing import Optional
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 
 from aiohttp.client import ClientSession
 from bs4 import BeautifulSoup, Tag
@@ -13,13 +11,13 @@ from yarl import URL
 
 
 class xenforo(spider):
-    suffix_url = "?order=post_date&direction=desc"
+    suffix_url = {"order": "post_date", "direction": "desc"}
 
     def __init__(self, url_: str, sess: ClientSession) -> None:
         self.sess = sess  # type: ClientSession
         self.crawl_times = dict()  # type: ignore
 
-        self.base_url = url_.strip(" ").rstrip("/") + "/"
+        self.base_url = url_.strip(" ").rstrip("/")
         # self.crawl()
 
     def crawl(self) -> None:
@@ -39,7 +37,7 @@ class xenforo(spider):
             return
 
         for i, v in enumerate(subs):
-            _url = self.base_url + subs[i][0] + self.suffix_url
+            _url = URL(self.base_url).joinpath(subs[i][0]).with_query(self.suffix_url)
             self._add_url(_url, partial(self.parse_section, nxt=True))
         return
 
@@ -117,12 +115,11 @@ class xenforo(spider):
 
         # get the section name, and page number from the url
         _url = res.url
-        _url_path_split = [s for s in _url.path.split("/") if s]
 
-        if _url_path_split[0] != "forum":
+        if res.url.parts[1] != "forum":
             return
 
-        section = _url_path_split[1]
+        section = res.url.parts[2]
 
         txt = await res.text()
         soup = BeautifulSoup(txt, "lxml")
@@ -233,7 +230,12 @@ class xenforo(spider):
 
             if i == url_limit:
                 nxt = True
-            _url = self.base_url + section + "/page-" + str(nxt_page) + self.suffix_url
+
+            _url = str(
+                URL(self.base_url)
+                .joinpath(section, f"page-{str(nxt_page)}")
+                .with_query(self.suffix_url)
+            )
             self._add_url(_url, partial(self.parse_section, nxt=nxt))
 
         return
