@@ -95,7 +95,7 @@ class wordpress(spider):
         self.save_to_db(ret_list)
 
         if cb2.get("nxt"):
-            first_post_date = str(content[0].get("date"))
+            first_post_date = str(content[0].get("date_gmt"))
             curr_page_no = int(res.url.query.get("page", 1))
             max_pages = math.ceil(int(header_wptotal) / results_per_page)
             self.next_urls(
@@ -122,7 +122,7 @@ class wordpress(spider):
     def next_urls(
         self, page_no, max_pages, results_per_page, first_post_date, crawl_date
     ):
-        post_date = datetime.fromisoformat(first_post_date)
+        post_date = datetime.fromisoformat(first_post_date).replace(tzinfo=timezone.utc)
         gct = self.get_config_time()
 
         if page_no == 1:
