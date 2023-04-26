@@ -97,9 +97,12 @@ async def test_200_posts(mock, posts_json):
             assert len(cb) == 10
 
             for x in zip(POSTS_DATA, cb):
+                dp = datetime.fromisoformat(x[0]["date_post"]).replace(
+                    tzinfo=timezone.utc
+                )
                 assert x[0]["title"] == x[1].title
                 assert x[0]["url"] == x[1].url
-                assert x[0]["date_post"] == x[1].date_post
+                assert str(dp) == x[1].date_post
             assert wp.errors == 0
 
 
@@ -363,9 +366,12 @@ async def test_parser_posts(mock, posts_json):
             assert len(cb) == 10
 
             for x in zip(POSTS_DATA, cb):
+                dp = datetime.fromisoformat(x[0]["date_post"]).replace(
+                    tzinfo=timezone.utc
+                )
                 assert x[0]["title"] == x[1].title
                 assert x[0]["url"] == x[1].url
-                assert x[0]["date_post"] == x[1].date_post
+                assert str(dp) == x[1].date_post
             assert wp.errors == 0
 
 
