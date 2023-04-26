@@ -23,7 +23,7 @@ POSTS_DATA = [
     {
         "title": "Bank of England House, Bristol",
         "url": "https://www.whateversleft.co.uk/other/bank-of-england-house-bristol/",
-        "date_post": "2022-09-20T19:08:06",
+        "date_post": "2022-09-20T18:08:06",
     },
     {
         "title": "Springfield Hospital, Tooting",
@@ -33,17 +33,17 @@ POSTS_DATA = [
     {
         "title": "Brislington War Room, Region 7, Bristol",
         "url": "https://www.whateversleft.co.uk/underground/brislington-war-room-region-7-bristol/",
-        "date_post": "2020-10-05T13:03:47",
+        "date_post": "2020-10-05T12:03:47",
     },
     {
         "title": "Bomb Proof Records Room, Bristol",
         "url": "https://www.whateversleft.co.uk/underground/bomb-proof-records-room-bristol/",
-        "date_post": "2020-06-29T11:00:31",
+        "date_post": "2020-06-29T10:00:31",
     },
     {
         "title": "Shedload, Bristol",
         "url": "https://www.whateversleft.co.uk/industrial/shedload-bristol/",
-        "date_post": "2020-04-04T13:40:25",
+        "date_post": "2020-04-04T12:40:25",
     },
     {
         "title": "Whitchurch Hospital, Cardiff",
@@ -53,12 +53,12 @@ POSTS_DATA = [
     {
         "title": "Bristol Royal Infirmary &#8211; Old Building, Bristol",
         "url": "https://www.whateversleft.co.uk/hospitals/bristol-royal-infirmary-old-building-bristol/",
-        "date_post": "2018-10-01T14:05:01",
+        "date_post": "2018-10-01T13:05:01",
     },
     {
         "title": "Sunnyside Royal Hospital, Montrose",
         "url": "https://www.whateversleft.co.uk/asylums/sunnyside-royal-hospital-montrose-2/",
-        "date_post": "2018-04-22T20:36:56",
+        "date_post": "2018-04-22T19:36:56",
     },
     {
         "title": "Plaza Cinema, Port Talbot",

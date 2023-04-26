@@ -86,7 +86,9 @@ class wordpress(spider):
             data = refs(
                 title=row["title"]["rendered"],
                 url=row["link"],
-                date_post=row["date"],
+                date_post=str(
+                    datetime.fromisoformat(row["date_gmt"]).replace(tzinfo=timezone.utc)
+                ),
                 date_inserted=crawl_date,
             )
             ret_list.append(data)
@@ -108,7 +110,9 @@ class wordpress(spider):
         data = refs(
             title=content["title"]["rendered"],
             url=content["link"],
-            date_post=content["date"],
+            date_post=str(
+                datetime.fromisoformat(content["date_gmt"]).replace(tzinfo=timezone.utc)
+            ),
             date_inserted=crawl_date,
         )
 
