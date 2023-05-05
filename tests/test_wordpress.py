@@ -188,7 +188,7 @@ async def test_next(mock, posts_json):
     """,
         """[[crawler.wordpress]]
         url = "https://www.whateversleft.co.uk/"
-        lc = "2011-10-19T12:54:54"
+        lc = "2011-10-19T12:54:54+00:00"
     """,
     ],
 )
@@ -223,7 +223,7 @@ async def test_next_newer(mock, posts_json):
     )
     input_ = """[[crawler.wordpress]]
         url = "https://www.whateversleft.co.uk/"
-        lc = "2013-10-19T12:54:54"
+        lc = "2013-10-19T12:54:54+00:00"
     """
     with patch("builtins.open", mock_open(read_data=input_)) as m:
         async with aiohttp.ClientSession() as session:
@@ -247,7 +247,7 @@ async def test_next_end(mock, posts_json):
     )
     input_ = """[[crawler.wordpress]]
         url = "https://www.whateversleft.co.uk/"
-        lc = "2011-10-19T12:54:54"
+        lc = "2011-10-19T12:54:54+00:00"
     """
     with patch("builtins.open", mock_open(read_data=input_)) as m:
         async with aiohttp.ClientSession() as session:
@@ -271,7 +271,7 @@ async def test_next_single(mock, posts_json):
     )
     input_ = """[[crawler.wordpress]]
         url = "https://www.whateversleft.co.uk/"
-        lc = "2011-10-19T12:54:54"
+        lc = "2011-10-19T12:54:54+00:00"
     """
     with patch("builtins.open", mock_open(read_data=input_)) as m:
         async with aiohttp.ClientSession() as session:
@@ -288,7 +288,7 @@ async def test_next_single(mock, posts_json):
 data = [
     """[[crawler.wordpress]]
         url = "https://www.whateversleft.co.uk/"
-        lc = "2023-02-08T17:48:08"
+        lc = "2023-02-08T17:48:08+00:00"
     """,
     "",
     None,
@@ -313,7 +313,7 @@ async def test_config_time(mock, input_, posts_json):
             if input_ == data[0]:
                 tmp = wp.get_config_time()
                 assert isinstance(tmp, datetime)
-                assert tmp == datetime(2023, 2, 8, 17, 48, 8)
+                assert tmp == datetime(2023, 2, 8, 17, 48, 8, tzinfo=timezone.utc)
             else:
                 assert wp.get_config_time() == None
 
