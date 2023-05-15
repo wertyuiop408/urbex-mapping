@@ -77,7 +77,7 @@ async def search_sites(
     foo: str | None = None,
 ) -> list[dict[str, str | bool]]:
     db = session_factory()
-    query_ = select(places)
+    query_ = select(places).order_by(places.row_id.desc()).limit(200)
     res = db.scalars(query_).all()
 
     data = list()
