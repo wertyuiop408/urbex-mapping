@@ -26,7 +26,7 @@ async def greeter(name: str) -> str:
 
 @get("/bounds/{ne_lat: decimal}/{ne_lng: decimal}/{sw_lat: decimal}/{sw_lng: decimal}")
 async def get_bounds(
-    ne_lat: int, ne_lng: int, sw_lat: int, sw_lng: int
+    ne_lat: float, ne_lng: float, sw_lat: float, sw_lng: float
 ) -> list[dict[str, str | bool]]:
     db = session_factory()
     mysel = (
