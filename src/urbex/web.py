@@ -9,6 +9,8 @@ from litestar.static_files.config import StaticFilesConfig
 from litestar.template.config import TemplateConfig
 from sqlalchemy import select
 
+db = session_factory()
+
 """
 http://127.0.0.1:8000/schema/redoc
 http://127.0.0.1:8000/schema/elements
@@ -30,7 +32,6 @@ async def latest() -> Template:
 async def get_bounds(
     ne_lat: float, ne_lng: float, sw_lat: float, sw_lng: float
 ) -> list[dict[str, str | bool]]:
-    db = session_factory()
     mysel = (
         select(places)
         .where(places.lat < ne_lat)
@@ -107,8 +108,6 @@ async def search_sites(
 ) -> list[dict[str, str | bool]]:
     # foo isn't actually needed, but datatables needs something to query, so it's a sacrafice
 
-    db = session_factory()
-
     query_ = select(places)
 
     if ID:
@@ -147,7 +146,6 @@ async def search_refs(
     PID: str | None = None,
     Date: str | None = None,
 ) -> list[dict[str, str | bool]]:
-    db = session_factory()
     query_ = select(refs)
 
     if ID:
