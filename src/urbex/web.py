@@ -69,9 +69,39 @@ async def search(query_: str) -> str:
     return ""
 
 
+@get("/search2/sites")
+async def search_sites(
+    ID: str | None = None,
+    Name: str | None = None,
+    Status: str | None = None,
+    foo: str | None = None,
+) -> list[dict[str, str | bool]]:
+    db = session_factory()
+    query_ = select(places)
+    res = db.scalars(query_).all()
+
+    data = list()
+    for row in res:
+        data.append(
+            {
+                "id": row.row_id,
+                "name": row.name,
+                "loc": f"{row.lat},{row.long}",
+                "status": row.status,
+            }
+        )
+
+    return data
+
+
+@get("/search2/refs")
+async def search_refs() -> list[dict[str, str | bool]]:
+    return {}
+
+
 # @app.route("/search/<query>")
 app = Litestar(
-    route_handlers=[index, latest, get_bounds, search],
+    route_handlers=[index, latest, get_bounds, search, search_sites, search_refs],
     static_files_config=[StaticFilesConfig(directories=["static"], path="/static")],
     template_config=TemplateConfig(directory=".", engine=JinjaTemplateEngine),
 )
