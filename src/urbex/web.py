@@ -1,7 +1,7 @@
 import urllib.parse
 
 from db_base import session_factory
-from db_tables import places
+from db_tables import places, refs
 from litestar import Litestar, get
 from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.response_containers import Template
@@ -140,8 +140,44 @@ async def search_sites(
 
 
 @get("/search2/refs")
-async def search_refs() -> list[dict[str, str | bool]]:
-    return {}
+async def search_refs(
+    ID: str | None = None,
+    URL: str | None = None,
+    title: str | None = None,
+    PID: str | None = None,
+    Date: str | None = None,
+) -> list[dict[str, str | bool]]:
+    db = session_factory()
+    query_ = select(refs)
+
+    if ID:
+        query_ = condition(query_, refs.row_id, ID)
+
+    if URL:
+        query_ = condition(query_, refs.url, URL)
+
+    if title:
+        query_ = condition(query_, refs.title, title)
+
+    if Date:
+        query_ = condition(query_, refs.date_scrape, Date)
+
+    query_ = query_.order_by(refs.date_post.desc()).limit(200)
+    res = db.scalars(query_).all()
+
+    data = list()
+    for row in res:
+        data.append(
+            {
+                "id": row.row_id,
+                "url": row.url,
+                "title": row.title,
+                "pid": 0,
+                "date": row.date_post,
+            }
+        )
+
+    return data
 
 
 # @app.route("/search/<query>")
