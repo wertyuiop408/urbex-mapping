@@ -1,3 +1,5 @@
+import urllib.parse
+
 from db_base import session_factory
 from db_tables import places
 from litestar import Litestar, get
@@ -69,6 +71,33 @@ async def search(query_: str) -> str:
     return ""
 
 
+def condition(query_, row, value) -> select:
+    value = urllib.parse.unquote(value)
+
+    if value[:2] == ">=" or value[:2] == "<=" or value[:2] == "<>":
+        if value[:2] == ">=":
+            query_ = query_.where(row >= value[2:])
+
+        elif value[:2] == "<=":
+            query_ = query_.where(row <= value[2:])
+
+        elif value[:2] == "<>":
+            query_ = query_.where(row != value[2:])
+
+    elif value[0] == ">" or value[0] == "<" or value[0] == "=":
+        if value[0] == ">":
+            query_ = query_.where(row > value[1:])
+
+        elif value[0] == "<":
+            query_ = query_.where(row < value[1:])
+
+        elif value[0] == "=":
+            query_ = query_.where(row == value[1:])
+    else:
+        query_ = query_.where(row.like(f"%{value}%"))
+    return query_
+
+
 @get("/search2/sites")
 async def search_sites(
     ID: str | None = None,
@@ -77,7 +106,13 @@ async def search_sites(
     foo: str | None = None,
 ) -> list[dict[str, str | bool]]:
     db = session_factory()
-    query_ = select(places).order_by(places.row_id.desc()).limit(200)
+
+    query_ = select(places)
+
+    if ID:
+        query_ = condition(query_, places.row_id, ID)
+
+    query_ = query_.order_by(places.row_id.desc()).limit(200)
     res = db.scalars(query_).all()
 
     data = list()
