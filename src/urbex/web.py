@@ -105,6 +105,8 @@ async def search_sites(
     Status: str | None = None,
     foo: str | None = None,
 ) -> list[dict[str, str | bool]]:
+    # foo isn't actually needed, but datatables needs something to query, so it's a sacrafice
+
     db = session_factory()
 
     query_ = select(places)
@@ -112,7 +114,15 @@ async def search_sites(
     if ID:
         query_ = condition(query_, places.row_id, ID)
 
+    if Name:
+        query_ = condition(query_, places.name, Name)
+
+    if Status:
+        query_ = condition(query_, places.status, Status)
+
     query_ = query_.order_by(places.row_id.desc()).limit(200)
+    # sometimes the webpage stops querying properly, never caught it before with below debug
+    print(query_)
     res = db.scalars(query_).all()
 
     data = list()
