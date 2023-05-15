@@ -158,9 +158,9 @@ async def search_refs(
         query_ = condition(query_, refs.title, title)
 
     if Date:
-        query_ = condition(query_, refs.date_scrape, Date)
+        query_ = condition(query_, refs.date_post, Date)
 
-    query_ = query_.order_by(refs.date_post.desc()).limit(200)
+    query_ = query_.order_by(refs.row_id.desc()).limit(200)
     res = db.scalars(query_).all()
 
     data = list()
