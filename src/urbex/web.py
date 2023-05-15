@@ -36,11 +36,13 @@ async def get_bounds(
         .where(places.long < ne_lng)
         .where(places.long > sw_lng)
     )
-    # res = db.execute(mysel).all()
-    # print(len(res))
+
+    res = db.scalars(mysel).all()
+    print(len(res))
+
     geojson = {"type": "FeatureCollection", "features": list()}
 
-    for row in db.scalars(mysel):
+    for row in res:
         yy = {
             "type": "Feature",
             "geometry": {"type": "Point", "coordinates": [row.long, row.lat]},
