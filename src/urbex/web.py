@@ -71,7 +71,7 @@ async def get_bounds(
 async def search(query_: str) -> list[dict[str, str | bool]]:
     stmt = text(
         """SELECT places.row_id, places.long, places.lat, places.name, tagquery.tag FROM
-            (SELECT rowid, tag, bm25(tags_ft) AS bm25 FROM tags_ft WHERE tags_ft.tag match :query) AS tagquery
+            (SELECT rowid, tag, bm25(tags_ft) AS bm25 FROM tags_ft WHERE tags_ft.tag MATCH :query LIMIT 10) AS tagquery
         LEFT JOIN tag_rel ON tag_rel.tag_id=tagquery.rowid
         LEFT JOIN places ON tag_rel.place_id=places.row_id
         ORDER BY tagquery.bm25"""
