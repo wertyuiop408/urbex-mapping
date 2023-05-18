@@ -69,6 +69,10 @@ async def get_bounds(
 
 @get("/search/{query_: str}")
 async def search(query_: str) -> list[dict[str, str | bool]]:
+    geojson = {"type": "FeatureCollection", "features": list()}
+    if len(query_) < 3:
+        return geojson
+
     # search the virtual table for the tag, and order it by the bm25 algorithm. Then grab the related place
     stmt = text(
         """SELECT places.row_id, places.long, places.lat, places.name, tagquery.tag FROM
@@ -81,7 +85,6 @@ async def search(query_: str) -> list[dict[str, str | bool]]:
     res = db.execute(stmt, {"query": f"{query_}*"}).all()
     print(len(res))
 
-    geojson = {"type": "FeatureCollection", "features": list()}
     for row in res:
         yy = {
             "type": "Feature",
