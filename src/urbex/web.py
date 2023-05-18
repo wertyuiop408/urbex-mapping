@@ -69,6 +69,7 @@ async def get_bounds(
 
 @get("/search/{query_: str}")
 async def search(query_: str) -> list[dict[str, str | bool]]:
+    # search the virtual table for the tag, and order it by the bm25 algorithm. Then grab the related place
     stmt = text(
         """SELECT places.row_id, places.long, places.lat, places.name, tagquery.tag FROM
             (SELECT rowid, tag, bm25(tags_ft) AS bm25 FROM tags_ft WHERE tags_ft.tag MATCH :query LIMIT 10) AS tagquery
