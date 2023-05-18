@@ -7,7 +7,7 @@ from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.response_containers import Template
 from litestar.static_files.config import StaticFilesConfig
 from litestar.template.config import TemplateConfig
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 db = session_factory()
 
@@ -68,8 +68,28 @@ async def get_bounds(
 
 
 @get("/search/{query_: str}")
-async def search(query_: str) -> str:
-    return ""
+async def search(query_: str) -> list[dict[str, str | bool]]:
+    stmt = text(
+        """SELECT places.row_id, places.long, places.lat, places.name, tagquery.tag FROM
+            (SELECT rowid, tag, bm25(tags_ft) AS bm25 FROM tags_ft WHERE tags_ft.tag match :query) AS tagquery
+        LEFT JOIN tag_rel ON tag_rel.tag_id=tagquery.rowid
+        LEFT JOIN places ON tag_rel.place_id=places.row_id
+        ORDER BY tagquery.bm25"""
+    )
+
+    res = db.execute(stmt, {"query": f"{query_}*"}).all()
+    print(len(res))
+
+    geojson = {"type": "FeatureCollection", "features": list()}
+    for row in res:
+        yy = {
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [row[1], row[2]]},
+            "properties": {"name": row[3], "pid": row[0], "loc": ""},
+        }
+        geojson["features"].append(yy)
+
+    return geojson
 
 
 def condition(query_, row, value) -> select:
