@@ -75,6 +75,9 @@ async def search(query_: str) -> list[dict[str, str | bool]]:
 
     # search the virtual table for the tag, and order it by the bm25 algorithm using 'rank'. Then grab the related place
     stmt = text(
+        # Result: 10 rows returned in 311ms (limit 15/10)
+        # Result: 20 rows returned in 559ms (limit 30/20)
+        # Result: Result: 791 rows returned in 14212ms (no limit)
         """SELECT * FROM (
             SELECT places.row_id as pid,
                 places.long,
