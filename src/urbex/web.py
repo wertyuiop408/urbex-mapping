@@ -75,11 +75,16 @@ async def search(query_: str) -> list[dict[str, str | bool]]:
 
     # search the virtual table for the tag, and order it by the bm25 algorithm. Then grab the related place
     stmt = text(
-        """SELECT places.row_id, places.long, places.lat, places.name, tagquery.tag FROM
-            (SELECT rowid, tag, bm25(tags_ft) AS bm25 FROM tags_ft WHERE tags_ft.tag MATCH :query LIMIT 10) AS tagquery
-        LEFT JOIN tag_rel ON tag_rel.tag_id=tagquery.rowid
-        LEFT JOIN places ON tag_rel.place_id=places.row_id
-        ORDER BY tagquery.bm25"""
+        """SELECT * FROM (SELECT places.row_id as pid, places.long, places.lat, places.name, tags_ft.tag, rank FROM tags_ft
+        LEFT JOIN tag_rel ON tag_rel.tag_id=tags_ft.rowid
+        LEFT JOIN places ON places.row_id=tag_rel.place_id
+        WHERE tags_ft.tag MATCH :query
+
+        ORDER BY rank
+        LIMIT 15)
+        GROUP BY pid
+        ORDER BY rank
+        LIMIT 10"""
     )
 
     res = db.execute(stmt, {"query": f"{query_}*"}).all()
