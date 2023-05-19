@@ -73,15 +73,22 @@ async def search(query_: str) -> list[dict[str, str | bool]]:
     if len(query_) < 3:
         return geojson
 
-    # search the virtual table for the tag, and order it by the bm25 algorithm. Then grab the related place
+    # search the virtual table for the tag, and order it by the bm25 algorithm using 'rank'. Then grab the related place
     stmt = text(
-        """SELECT * FROM (SELECT places.row_id as pid, places.long, places.lat, places.name, tags_ft.tag, rank FROM tags_ft
-        LEFT JOIN tag_rel ON tag_rel.tag_id=tags_ft.rowid
-        LEFT JOIN places ON places.row_id=tag_rel.place_id
-        WHERE tags_ft.tag MATCH :query
+        """SELECT * FROM (
+            SELECT places.row_id as pid,
+                places.long,
+                places.lat,
+                places.name,
+                tags_ft.tag,
+                rank 
+                FROM tags_ft
+            LEFT JOIN tag_rel ON tag_rel.tag_id=tags_ft.rowid
+            LEFT JOIN places ON places.row_id=tag_rel.place_id
+            WHERE tags_ft.tag MATCH :query
 
-        ORDER BY rank
-        LIMIT 15)
+            ORDER BY rank
+            LIMIT 15)
         GROUP BY pid
         ORDER BY rank
         LIMIT 10"""
