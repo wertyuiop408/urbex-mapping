@@ -1,3 +1,4 @@
+import time
 import urllib.parse
 
 from db_base import session_factory
@@ -73,6 +74,7 @@ async def search(query_: str) -> list[dict[str, str | bool]]:
     if len(query_) < 3:
         return geojson
 
+    start = time.time()
     # search the virtual table for the tag, and order it by the bm25 algorithm using 'rank'. Then grab the related place
     stmt = text(
         # Result: 10 rows returned in 311ms (limit 15/10)
@@ -98,8 +100,7 @@ async def search(query_: str) -> list[dict[str, str | bool]]:
     )
 
     res = db.execute(stmt, {"query": f"{query_}*"}).all()
-    print(len(res))
-
+    sqltime = time.time() - start
     for row in res:
         yy = {
             "type": "Feature",
@@ -108,6 +109,9 @@ async def search(query_: str) -> list[dict[str, str | bool]]:
         }
         geojson["features"].append(yy)
 
+    print(f"{len(res)} results")
+    print(f"Query time: {sqltime}")
+    print(f"Page time: {(time.time() - start)}")
     return geojson
 
 
