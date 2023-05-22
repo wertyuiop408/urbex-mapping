@@ -5,7 +5,7 @@ from sqlalchemy import REAL, Column, ForeignKey, Integer, Table, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing_extensions import Annotated
 
-__schema_version__ = "0.2.2"
+__schema_version__ = "0.2.3"
 
 intpk = Annotated[int, mapped_column(Integer, primary_key=True, init=False)]
 txt = Annotated[Optional[str], mapped_column(Text, default=None)]
@@ -96,4 +96,6 @@ t3 = """CREATE TRIGGER IF NOT EXISTS tags_au AFTER UPDATE ON tags BEGIN
 session.execute(text(t1))
 session.execute(text(t2))
 session.execute(text(t3))
-session.execute(text("create index tag_edge_idx on tag_rel(tag_id, place_id)"))
+session.execute(
+    text("CREATE INDEX IF NOT EXISTS tag_edge_idx ON tag_rel(tag_id, place_id)")
+)
