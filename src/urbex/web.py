@@ -188,6 +188,10 @@ async def search_refs(
     if Date:
         query_ = query_.where(condition(refs.date_post, Date))
 
+    if PID:
+        # https://docs.sqlalchemy.org/en/20/orm/join_conditions.html#specifying-alternate-join-conditions
+        query_ = query_.where(refs.assoc_place.any(condition(places.row_id, PID)))
+
     query_ = query_.order_by(refs.row_id.desc()).limit(200)
     res = db.scalars(query_).all()
 
