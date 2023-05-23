@@ -194,12 +194,13 @@ async def search_refs(
 
     data = list()
     for row in res:
+        pid = ", ".join([str(place.row_id) for place in row.assoc_place])
         data.append(
             {
                 "id": row.row_id,
                 "url": row.url,
                 "title": row.title,
-                "pid": 0,
+                "pid": pid,
                 "date": row.date_post,
             }
         )
