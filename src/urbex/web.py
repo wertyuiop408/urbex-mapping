@@ -8,6 +8,7 @@ from litestar.response_containers import Template
 from litestar.static_files.config import StaticFilesConfig
 from litestar.template.config import TemplateConfig
 from sqlalchemy import select, text
+from sqlalchemy.sql.elements import BinaryExpression
 
 db = session_factory()
 
@@ -101,7 +102,7 @@ async def search(query_: str) -> list[dict[str, str | bool]]:
     return geojson
 
 
-def condition(row, value) -> select:
+def condition(row, value) -> BinaryExpression:
     value = urllib.parse.unquote(value)
 
     if value[:2] == ">=" or value[:2] == "<=" or value[:2] == "<>":
