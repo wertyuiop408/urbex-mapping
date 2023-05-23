@@ -101,31 +101,30 @@ async def search(query_: str) -> list[dict[str, str | bool]]:
     return geojson
 
 
-def condition(query_, row, value) -> select:
+def condition(row, value) -> select:
     value = urllib.parse.unquote(value)
 
     if value[:2] == ">=" or value[:2] == "<=" or value[:2] == "<>":
         if value[:2] == ">=":
-            query_ = query_.where(row >= value[2:])
+            return row >= value[2:]
 
         elif value[:2] == "<=":
-            query_ = query_.where(row <= value[2:])
+            return row <= value[2:]
 
         elif value[:2] == "<>":
-            query_ = query_.where(row != value[2:])
+            return row != value[2:]
 
     elif value[0] == ">" or value[0] == "<" or value[0] == "=":
         if value[0] == ">":
-            query_ = query_.where(row > value[1:])
+            return row > value[1:]
 
         elif value[0] == "<":
-            query_ = query_.where(row < value[1:])
+            return row < value[1:]
 
         elif value[0] == "=":
-            query_ = query_.where(row == value[1:])
+            return row == value[1:]
     else:
-        query_ = query_.where(row.like(f"%{value}%"))
-    return query_
+        return row.like(f"%{value}%")
 
 
 @get("/search2/sites")
@@ -140,13 +139,13 @@ async def search_sites(
     query_ = select(places)
 
     if ID:
-        query_ = condition(query_, places.row_id, ID)
+        query_ = query_.where(condition(places.row_id, ID))
 
     if Name:
-        query_ = condition(query_, places.name, Name)
+        query_ = query_.where(condition(places.name, Name))
 
     if Status:
-        query_ = condition(query_, places.status, Status)
+        query_ = query_.where(condition(places.status, Status))
 
     query_ = query_.order_by(places.row_id.desc()).limit(200)
     # sometimes the webpage stops querying properly, never caught it before with below debug
@@ -178,16 +177,16 @@ async def search_refs(
     query_ = select(refs)
 
     if ID:
-        query_ = condition(query_, refs.row_id, ID)
+        query_ = query_.where(condition(refs.row_id, ID))
 
     if URL:
-        query_ = condition(query_, refs.url, URL)
+        query_ = query_.where(condition(refs.url, URL))
 
     if title:
-        query_ = condition(query_, refs.title, title)
+        query_ = query_.where(condition(refs.title, title))
 
     if Date:
-        query_ = condition(query_, refs.date_post, Date)
+        query_ = query_.where(condition(refs.date_post, Date))
 
     query_ = query_.order_by(refs.row_id.desc()).limit(200)
     res = db.scalars(query_).all()
