@@ -93,6 +93,10 @@ async def search(query_: str) -> list[dict[str, str | bool]]:
 
     res = db.execute(stmt, {"query": f"{query_}*"}).all()
     for row in res:
+        """
+        'loc' in properties dict is for the location, which used match ^roc OR ^county, then split by :.
+        I do not know how to implement that into the SQL query, and getting it seperately is also expensive.
+        """
         yy = {
             "type": "Feature",
             "geometry": {"type": "Point", "coordinates": [row[1], row[2]]},
