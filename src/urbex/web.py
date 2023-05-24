@@ -212,7 +212,6 @@ async def search_refs(
     return data
 
 
-# @app.route("/search/<query>")
 app = Litestar(
     route_handlers=[index, latest, get_bounds, search, search_sites, search_refs],
     static_files_config=[StaticFilesConfig(directories=["static"], path="/static")],
