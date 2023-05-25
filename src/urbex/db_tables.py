@@ -68,37 +68,37 @@ class refs(Base):
 
 
 session = session_factory()
-session.execute(
-    text(
-        """CREATE VIRTUAL TABLE IF NOT EXISTS tags_ft USING fts5(
-            content=tags,
-            content_rowid=row_id,
-            tag
-        )"""
+with session.begin():
+    session.execute(
+        text(
+            """CREATE VIRTUAL TABLE IF NOT EXISTS tags_ft USING fts5(
+                content=tags,
+                content_rowid=row_id,
+                tag
+            )"""
+        )
     )
-)
 
-t1 = """CREATE TRIGGER IF NOT EXISTS tags_ai AFTER INSERT ON tags BEGIN
-        INSERT INTO tags_ft(rowid, tag) VALUES (new.row_id, new.tag);
-        END;"""
+    t1 = """CREATE TRIGGER IF NOT EXISTS tags_ai AFTER INSERT ON tags BEGIN
+            INSERT INTO tags_ft(rowid, tag) VALUES (new.row_id, new.tag);
+            END;"""
 
+    t2 = """CREATE TRIGGER IF NOT EXISTS tags_ad AFTER DELETE ON tags BEGIN
+            INSERT INTO tags_ft(tags_ft, rowid, tag) VALUES('delete', old.row_id, old.tag);
+            END;"""
 
-t2 = """CREATE TRIGGER IF NOT EXISTS tags_ad AFTER DELETE ON tags BEGIN
-        INSERT INTO tags_ft(tags_ft, rowid, tag) VALUES('delete', old.row_id, old.tag);
-        END;"""
-
-
-t3 = """CREATE TRIGGER IF NOT EXISTS tags_au AFTER UPDATE ON tags BEGIN
-        INSERT INTO tags_ft(tags_ft, rowid, tag) VALUES('delete', old.row_id, old.tag);
-        INSERT INTO tags_ft(rowid, tag) VALUES (new.row_id, new.tag);
-        END;
-        """
-session.execute(text(t1))
-session.execute(text(t2))
-session.execute(text(t3))
-session.execute(
-    text("CREATE INDEX IF NOT EXISTS tag_edge_idx ON tag_rel(tag_id, place_id)")
-)
-session.execute(
-    text("CREATE INDEX IF NOT EXISTS place_edge_idx on place_rel(ref_id, place_id)")
-)
+    t3 = """CREATE TRIGGER IF NOT EXISTS tags_au AFTER UPDATE ON tags BEGIN
+            INSERT INTO tags_ft(tags_ft, rowid, tag) VALUES('delete', old.row_id, old.tag);
+            INSERT INTO tags_ft(rowid, tag) VALUES (new.row_id, new.tag);
+            END;
+            """
+    session.execute(text(t1))
+    session.execute(text(t2))
+    session.execute(text(t3))
+    session.execute(
+        text("CREATE INDEX IF NOT EXISTS tag_edge_idx ON tag_rel(tag_id, place_id)")
+    )
+    session.execute(
+        text("CREATE INDEX IF NOT EXISTS place_edge_idx on place_rel(ref_id, place_id)")
+    )
+    session.commit()
