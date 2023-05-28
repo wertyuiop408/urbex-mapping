@@ -1,13 +1,18 @@
 import urllib.parse
+from dataclasses import asdict, dataclass
+from functools import reduce
+from typing import Annotated
 
 from db_base import session_factory
-from db_tables import places, refs
-from litestar import Litestar, Request, get
+from db_tables import association_table, places, refs
+from litestar import Litestar, Request, get, post
 from litestar.contrib.jinja import JinjaTemplateEngine
+from litestar.enums import RequestEncodingType
+from litestar.params import Body
 from litestar.response_containers import Template
 from litestar.static_files.config import StaticFilesConfig
 from litestar.template.config import TemplateConfig
-from sqlalchemy import select, text
+from sqlalchemy import bindparam, insert, select, text
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.sql.elements import BinaryExpression
 
@@ -32,6 +37,64 @@ async def index() -> Template:
 @get("/latest")
 async def latest() -> Template:
     return Template(name="latest.html")
+
+
+@dataclass
+class pid_form:
+    value: str
+    oldpid: str
+    id: str  # rowid
+
+
+@dataclass
+class pet:
+    ref_id: int
+    place_id: int
+
+
+@post("/edit")
+async def edit_pid(
+    data: Annotated[pid_form, Body(media_type=RequestEncodingType.URL_ENCODED)]
+) -> str:
+    try:
+        if data.value.strip(" ") == data.oldpid.strip(" "):
+            return data.oldpid.strip(" ")
+
+        newpid = {int(elem.strip()) for elem in data.value.split(",") if elem}
+        oldpid = {int(elem.strip()) for elem in data.oldpid.split(",") if elem}
+
+        # https://stackoverflow.com/questions/4211209/remove-all-the-elements-that-occur-in-one-list-from-another
+        deleted = list(reduce(lambda x, y: filter(lambda z: z != y, x), newpid, oldpid))
+        added = list(reduce(lambda x, y: filter(lambda z: z != y, x), oldpid, newpid))
+        out = list()
+
+        with Session() as db:
+            if len(added) > 0:
+                in_data = [asdict(pet(int(data.id), add)) for add in added]
+                insert_stmnt = insert(association_table).prefix_with("OR IGNORE")
+                db.execute(insert_stmnt, in_data)
+
+            if len(deleted) > 0:
+                stmt = text(
+                    "DELETE FROM place_rel WHERE ref_id = :rid AND place_id IN :pid"
+                )
+                stmt = stmt.bindparams(
+                    bindparam("rid", value=int(data.id)),
+                    bindparam("pid", value=deleted, expanding=True),
+                )
+                xx = db.execute(stmt)
+                sel = db.execute(
+                    text("SELECT place_id FROM place_rel WHERE ref_id = :rid"),
+                    {"rid": int(data.id)},
+                ).all()
+                for x in sel:
+                    out.append(str(x[0]))
+            db.commit()
+        return ", ".join(out)
+
+    except Exception as e:
+        print(e)
+        return
 
 
 @get("/bounds/{ne_lat: decimal}/{ne_lng: decimal}/{sw_lat: decimal}/{sw_lng: decimal}")
@@ -226,7 +289,15 @@ async def search_refs(
 
 
 app = Litestar(
-    route_handlers=[index, latest, get_bounds, search, search_sites, search_refs],
+    route_handlers=[
+        index,
+        latest,
+        get_bounds,
+        search,
+        search_sites,
+        search_refs,
+        edit_pid,
+    ],
     static_files_config=[StaticFilesConfig(directories=["static"], path="/static")],
     template_config=TemplateConfig(directory=".", engine=JinjaTemplateEngine),
     after_response=after_response,
