@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from db_base import Base, session_factory
 from sqlalchemy import REAL, Column, ForeignKey, Integer, Table, Text, text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, scoped_session
 from typing_extensions import Annotated
 
 __schema_version__ = "0.2.4"
@@ -67,9 +67,9 @@ class refs(Base):
     )
 
 
-session = session_factory()
-with session.begin():
-    session.execute(
+Session = scoped_session(session_factory)
+with Session() as db:
+    db.execute(
         text(
             """CREATE VIRTUAL TABLE IF NOT EXISTS tags_ft USING fts5(
                 content=tags,
@@ -92,13 +92,14 @@ with session.begin():
             INSERT INTO tags_ft(rowid, tag) VALUES (new.row_id, new.tag);
             END;
             """
-    session.execute(text(t1))
-    session.execute(text(t2))
-    session.execute(text(t3))
-    session.execute(
+    db.execute(text(t1))
+    db.execute(text(t2))
+    db.execute(text(t3))
+    db.execute(
         text("CREATE INDEX IF NOT EXISTS tag_edge_idx ON tag_rel(tag_id, place_id)")
     )
-    session.execute(
+    db.execute(
         text("CREATE INDEX IF NOT EXISTS place_edge_idx on place_rel(ref_id, place_id)")
     )
-    session.commit()
+    db.commit()
+Session.remove()

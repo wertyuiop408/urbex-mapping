@@ -2,21 +2,26 @@ import urllib.parse
 
 from db_base import session_factory
 from db_tables import places, refs
-from litestar import Litestar, get
+from litestar import Litestar, Request, get
 from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.response_containers import Template
 from litestar.static_files.config import StaticFilesConfig
 from litestar.template.config import TemplateConfig
 from sqlalchemy import select, text
+from sqlalchemy.orm import scoped_session
 from sqlalchemy.sql.elements import BinaryExpression
 
-db = session_factory()
+Session = scoped_session(session_factory)
 
 """
 http://127.0.0.1:8000/schema/redoc
 http://127.0.0.1:8000/schema/elements
 http://127.0.0.1:8000/schema/swagger
 """
+
+
+async def after_response(request: Request) -> None:
+    Session.remove()
 
 
 @get("/")
@@ -40,8 +45,8 @@ async def get_bounds(
         .where(places.long < ne_lng)
         .where(places.long > sw_lng)
     )
-
-    res = db.scalars(mysel).all()
+    with Session() as db:
+        res = db.scalars(mysel).all()
     print(len(res))
 
     geojson = {"type": "FeatureCollection", "features": list()}
@@ -90,8 +95,8 @@ async def search(query_: str) -> list[dict[str, str | bool]]:
         LIMIT 15
         """
     )
-
-    res = db.execute(stmt, {"query": f"{query_}*"}).all()
+    with Session() as db:
+        res = db.execute(stmt, {"query": f"{query_}*"}).all()
     for row in res:
         """
         'loc' in properties dict is for the location, which used match ^roc OR ^county, then split by :.
@@ -155,7 +160,8 @@ async def search_sites(
     query_ = query_.order_by(places.row_id.desc()).limit(200)
     # sometimes the webpage stops querying properly, never caught it before with below debug
     print(query_)
-    res = db.scalars(query_).all()
+    with Session() as db:
+        res = db.scalars(query_).all()
 
     data = list()
     for row in res:
@@ -178,40 +184,43 @@ async def search_refs(
     title: str | None = None,
     PID: str | None = None,
     Date: str | None = None,
+    foo: str | None = None,
 ) -> list[dict[str, str | bool]]:
-    query_ = select(refs)
+    with Session() as db:
+        query_ = select(refs)
 
-    if ID:
-        query_ = query_.where(condition(refs.row_id, ID))
+        if ID:
+            query_ = query_.where(condition(refs.row_id, ID))
 
-    if URL:
-        query_ = query_.where(condition(refs.url, URL))
+        if URL:
+            query_ = query_.where(condition(refs.url, URL))
 
-    if title:
-        query_ = query_.where(condition(refs.title, title))
+        if title:
+            query_ = query_.where(condition(refs.title, title))
 
-    if Date:
-        query_ = query_.where(condition(refs.date_post, Date))
+        if Date:
+            query_ = query_.where(condition(refs.date_post, Date))
 
-    if PID:
-        # https://docs.sqlalchemy.org/en/20/orm/join_conditions.html#specifying-alternate-join-conditions
-        query_ = query_.where(refs.assoc_place.any(condition(places.row_id, PID)))
+        if PID:
+            # https://docs.sqlalchemy.org/en/20/orm/join_conditions.html#specifying-alternate-join-conditions
+            query_ = query_.where(refs.assoc_place.any(condition(places.row_id, PID)))
 
-    query_ = query_.order_by(refs.row_id.desc()).limit(200)
-    res = db.scalars(query_).all()
+        query_ = query_.order_by(refs.row_id.desc()).limit(200)
 
-    data = list()
-    for row in res:
-        pid = ", ".join([str(place.row_id) for place in row.assoc_place])
-        data.append(
-            {
-                "id": row.row_id,
-                "url": row.url,
-                "title": row.title,
-                "pid": pid,
-                "date": row.date_post,
-            }
-        )
+        res = db.scalars(query_).all()
+
+        data = list()
+        for row in res:
+            pid = ", ".join([str(place.row_id) for place in row.assoc_place])
+            data.append(
+                {
+                    "id": row.row_id,
+                    "url": row.url,
+                    "title": row.title,
+                    "pid": pid,
+                    "date": row.date_post,
+                }
+            )
 
     return data
 
@@ -220,4 +229,5 @@ app = Litestar(
     route_handlers=[index, latest, get_bounds, search, search_sites, search_refs],
     static_files_config=[StaticFilesConfig(directories=["static"], path="/static")],
     template_config=TemplateConfig(directory=".", engine=JinjaTemplateEngine),
+    after_response=after_response,
 )
