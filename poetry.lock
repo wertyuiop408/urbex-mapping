@@ -1089,14 +1089,14 @@ dev = ["Sphinx (>=5.1.1)", "black (==22.10.0)", "coverage (>=4.5.4)", "fixit (==
 
 [[package]]
 name = "litestar"
-version = "2.0.0a5"
+version = "2.0.0a7"
 description = "Performant, light and flexible ASGI API Framework"
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "litestar-2.0.0a5-py3-none-any.whl", hash = "sha256:ee3d332135cb0398c8b01aad64e7c149d3122938e341f76997b3cd7a7f11bad0"},
-    {file = "litestar-2.0.0a5.tar.gz", hash = "sha256:1e22b72219e468d3cabd9b5800461fa3e4c2b5c5a1b515616f4cfd81ad186f1b"},
+    {file = "litestar-2.0.0a7-py3-none-any.whl", hash = "sha256:92de105e2c5f2d89a4ad4d6c181c765b6a08d5be10337b7c94578490b16a7842"},
+    {file = "litestar-2.0.0a7.tar.gz", hash = "sha256:da515a979a23f2fd4a80056d54409006e62b6e7f643bf13b1bb4152bd7e184f1"},
 ]
 
 [package.dependencies]
@@ -1121,13 +1121,13 @@ attrs = ["attrs", "cattrs", "python-dateutil", "pytimeparse"]
 brotli = ["brotli"]
 cli = ["click", "jsbeautifier", "rich (>=13.0.0)", "uvicorn[standard] (>=0.21.1,<0.22.0)"]
 cryptography = ["cryptography"]
-full = ["alembic", "attrs", "brotli", "cattrs", "click", "cryptography", "jinja2 (>=3.1.2)", "jsbeautifier", "opentelemetry-instrumentation-asgi", "python-jose", "pytimeparse", "redis[hiredis] (>=4.4.4,!=4.5.0,!=4.5.1,!=4.5.2,!=4.5.3)", "rich (>=13.0.0)", "sqlalchemy (>=2.0.4)", "structlog", "uvicorn[standard] (>=0.21.1,<0.22.0)"]
+full = ["alembic", "attrs", "brotli", "cattrs", "click", "cryptography", "jinja2 (>=3.1.2)", "jsbeautifier", "opentelemetry-instrumentation-asgi", "python-jose", "pytimeparse", "redis[hiredis] (>=4.4.4,!=4.5.0,!=4.5.1,!=4.5.2,!=4.5.3,!=4.5.5)", "rich (>=13.0.0)", "sqlalchemy (>=2.0.12)", "structlog", "uvicorn[standard] (>=0.21.1,<0.22.0)"]
 jinja = ["jinja2 (>=3.1.2)"]
 jwt = ["cryptography", "python-jose"]
 opentelemetry = ["opentelemetry-instrumentation-asgi"]
 picologging = ["picologging"]
-redis = ["redis[hiredis] (>=4.4.4,!=4.5.0,!=4.5.1,!=4.5.2,!=4.5.3)"]
-sqlalchemy = ["alembic", "sqlalchemy (>=2.0.4)"]
+redis = ["redis[hiredis] (>=4.4.4,!=4.5.0,!=4.5.1,!=4.5.2,!=4.5.3,!=4.5.5)"]
+sqlalchemy = ["alembic", "sqlalchemy (>=2.0.12)"]
 standard = ["click", "jinja2 (>=3.1.2)", "jsbeautifier", "rich (>=13.0.0)", "uvicorn[standard] (>=0.21.1,<0.22.0)"]
 structlog = ["structlog"]
 
@@ -2619,4 +2619,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "cb9d3e68cd83ab7c2e63b68b0cafb8cefab1843e5bee1993ff1afdd50f9a9745"
+content-hash = "ecf95e188704766d7911d34fd43f6b701e64f563404dd5aad799271299ce02d3"
