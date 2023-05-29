@@ -32,9 +32,10 @@ class places(Base):
     date_inserted: Mapped[txt]
     last_updated: Mapped[txt]
     name: Mapped[txt]
+    notes: Mapped[txt]
     long: Mapped[Optional[int]] = mapped_column(REAL, default=None)
     lat: Mapped[Optional[int]] = mapped_column(REAL, default=None)
-    notes: Mapped[txt]
+
     status: Mapped[Optional[int]] = mapped_column(Integer, default=None)
 
     assoc_ref: Mapped[List["refs"]] = relationship(
